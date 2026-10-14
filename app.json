@@ -1,0 +1,63 @@
+{
+  "expo": {
+    "name": "BidDrop",
+    "slug": "BidDrop",
+    "scheme": "biddrop",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/images/icon.png",
+    "splash": {
+      "image": "./assets/images/SplashScreen.png",
+      "resizeMode": "cover",
+      "backgroundColor": "#ffffff"
+    },
+    "userInterfaceStyle": "automatic",
+    "newArchEnabled": true,
+
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "ba9c100f-a0df-467a-ab24-8ed14b5a8ae6"
+      },
+      "wcProjectId": "${EXPO_PUBLIC_WC_PROJECT_ID}"
+    },
+
+    "plugins": [
+      "expo-router",
+      "expo-splash-screen",
+      "expo-font",
+      "expo-web-browser",
+      "expo-notifications"
+    ],
+
+    "experiments": { "typedRoutes": true },
+
+    "ios": {
+      "bundleIdentifier": "com.biddrop.app",
+      "supportsTablet": true
+    },
+
+    "android": {
+      "package": "com.biddrop.app",
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/images/adaptive-icon-foreground-2.png",
+        "backgroundColor": "#FFFFFF"
+      },
+      "edgeToEdgeEnabled": true,
+      "googleServicesFile": "./google-services.json",
+      "intentFilters": [
+        {
+          "action": "VIEW",
+          "category": ["BROWSABLE", "DEFAULT"],
+          "data": [{ "scheme": "biddrop" }]
+        }
+      ]
+    },
+
+    "web": {
+      "bundler": "metro",
+      "output": "static",
+      "favicon": "./assets/images/icon.png"
+    }
+  }
+}

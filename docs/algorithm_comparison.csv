@@ -1,0 +1,19 @@
+model,algorithm,inputs,MAE,RMSE,R2,train_sec,later_never_scores_higher
+1: delivery time (min),HistGradientBoosting (app),all features,2.9702,3.6845,0.8315,0.7354,
+1: delivery time (min),HistGradientBoosting (app),app inputs,4.5256,5.938,0.5623,0.7354,
+1: delivery time (min),XGBoost,all features,2.9937,3.7254,0.8277,0.7319,
+1: delivery time (min),XGBoost,app inputs,4.5819,5.9823,0.5557,0.7319,
+1: delivery time (min),CatBoost,all features,2.927,3.635,0.836,7.8004,
+1: delivery time (min),CatBoost,app inputs,4.6555,6.0906,0.5395,7.8004,
+1: delivery time (min),RandomForest (original),all features,3.0234,3.7852,0.8221,3.3192,
+1: delivery time (min),RandomForest (original),app inputs,4.6342,6.0819,0.5408,3.3192,
+1: delivery time (min),LinearRegression,all features,4.6372,5.8269,0.5785,0.1961,
+1: delivery time (min),LinearRegression,app inputs,5.6212,7.0583,0.3816,0.1961,
+1: delivery time (min),Baseline (predict mean),-,7.2573,8.9757,-0.0001,0.0,
+2: rating (stars),HistGradientBoosting (app),delay features,0.2135,0.2894,0.1867,0.171,True
+2: rating (stars),XGBoost,delay features,0.2136,0.2896,0.1855,0.1553,True
+2: rating (stars),CatBoost,delay features,0.2221,0.2929,0.1668,0.8076,True
+2: rating (stars),"HistGradientBoosting, no constraint",delay features,0.1981,0.2661,0.3122,0.2751,False
+2: rating (stars),RandomForest (no constraint),delay features,0.1982,0.2654,0.3158,2.1207,False
+2: rating (stars),LinearRegression,delay features,0.2203,0.2967,0.1452,0.0028,True
+2: rating (stars),Baseline (predict mean),-,0.2309,0.3209,-0.0001,0.0,

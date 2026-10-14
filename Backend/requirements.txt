@@ -1,0 +1,33 @@
+# Backend (FastAPI) dependencies. Tested with Python 3.13.
+# Install from the project root:  pip install -r Backend/requirements.txt
+fastapi==0.143.0
+uvicorn==0.53.0
+SQLAlchemy==2.1.4
+psycopg2-binary==2.9.13
+python-dotenv==1.2.3
+python-jose==3.5.0
+pydantic==2.13.5
+APScheduler==3.11.3
+geopy==2.5.0
+httpx==0.28.1
+requests==2.34.2
+twilio==9.11.2
+substrate-interface==1.8.1
+tzdata==2026.5
+
+# Delivery-time model. scikit-learn must stay at the version that saved
+# Backend/delivery_time_model.pkl (see Backend/ml_metrics.json).
+pandas==3.0.5
+numpy==2.5.3
+scikit-learn==1.9.1
+joblib==1.6.0
+
+# Algorithm comparison (scripts/compare_algorithms.py)
+xgboost==3.4.1
+catboost==1.2.10
+
+# Simulation chart (scripts/simulate_trust_weights.py)
+matplotlib==3.11.2
+
+# Tests
+pytest==9.1.1

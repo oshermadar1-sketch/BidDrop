@@ -1,0 +1,60 @@
+[package]
+name = "pallet-escrow"
+description = "On-chain logical escrow pallet for BidDrop assignments"
+version = "0.1.0"
+license = "Unlicense"
+authors.workspace = true
+homepage.workspace = true
+repository.workspace = true
+edition.workspace = true
+publish = false
+
+[package.metadata.docs.rs]
+targets = ["x86_64-unknown-linux-gnu"]
+
+[dependencies]
+# codec & scale-info are provided via workspace
+codec      = { workspace = true }
+scale-info = { workspace = true }
+
+# FRAME / Substrate deps via workspace, no std by default
+frame-support = { workspace = true, default-features = false }
+frame-system  = { workspace = true, default-features = false }
+sp-std        = { workspace = true, default-features = false }
+sp-runtime    = { workspace = true, default-features = false }
+
+# (Optional) benchmarking wired as optional dep
+frame-benchmarking = { workspace = true, optional = true, default-features = false }
+
+[dev-dependencies]
+# Dev deps can keep std enabled for tests/mocks if you use them
+sp-core    = { workspace = true, default-features = true }
+sp-io      = { workspace = true, default-features = true }
+sp-runtime = { workspace = true, default-features = true }
+
+[features]
+default = ["std"]
+
+# Enable std for all deps when building the runtime in std context (tests, native)
+std = [
+  "codec/std",
+  "scale-info/std",
+  "frame-support/std",
+  "frame-system/std",
+  "sp-std/std",
+  "sp-runtime/std",
+  "frame-benchmarking?/std",
+]
+
+runtime-benchmarks = [
+  "frame-benchmarking/runtime-benchmarks",
+  "frame-support/runtime-benchmarks",
+  "frame-system/runtime-benchmarks",
+  "sp-runtime/runtime-benchmarks",
+]
+
+try-runtime = [
+  "frame-support/try-runtime",
+  "frame-system/try-runtime",
+  "sp-runtime/try-runtime",
+]

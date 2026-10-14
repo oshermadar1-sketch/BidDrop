@@ -1,0 +1,69 @@
+{
+  "trained_at": "2026-10-13T13:48:47+00:00",
+  "data": "Zomato_Final_Preprocessed.csv",
+  "rows_total": 33527,
+  "rows_train": 26821,
+  "rows_test": 6706,
+  "split": "random 80/20, random_state=42",
+  "model": "HistGradientBoostingRegressor",
+  "sklearn_version": "1.9.1",
+  "features": [
+    "Delivery_person_Age",
+    "Delivery_person_Ratings",
+    "Weather_conditions",
+    "Road_traffic_density",
+    "Vehicle_condition",
+    "Type_of_order",
+    "Type_of_vehicle",
+    "multiple_deliveries",
+    "Festival",
+    "City",
+    "Distance_km",
+    "Order_DayOfWeek"
+  ],
+  "test_metrics": {
+    "MAE_min": 2.97,
+    "RMSE_min": 3.68,
+    "R2": 0.8315
+  },
+  "test_metrics_app_inputs": {
+    "MAE_min": 4.53,
+    "RMSE_min": 5.94,
+    "R2": 0.5623
+  },
+  "test_metrics_app_inputs_with_courier_profile": {
+    "MAE_min": 3.16,
+    "RMSE_min": 3.94,
+    "R2": 0.8071
+  },
+  "app_inputs_note": "features never collected by the app set to defaults: multiple_deliveries, Festival, City, Type_of_order; without courier profile also: Delivery_person_Age, Vehicle_condition, Type_of_vehicle",
+  "baseline_predict_mean": {
+    "MAE_min": 7.26,
+    "RMSE_min": 8.98,
+    "R2": -0.0001
+  },
+  "rating_model": {
+    "model": "HistGradientBoostingRegressor (monotonic: later -> lower)",
+    "features": [
+      "delay_min",
+      "actual_over_predicted"
+    ],
+    "label": "Delivery_person_Ratings (courier rating, 1..5)",
+    "test_metrics": {
+      "MAE_stars": 0.214,
+      "R2": 0.1867
+    },
+    "linear_regression": {
+      "MAE_stars": 0.22,
+      "R2": 0.1452
+    },
+    "baseline_predict_mean": {
+      "MAE_stars": 0.231,
+      "R2": -0.0001
+    }
+  },
+  "trust_priors": {
+    "global_mean_rating": 4.63,
+    "typical_model_score": 4.63
+  }
+}
