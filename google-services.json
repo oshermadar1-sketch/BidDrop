@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "530946880501",
+    "project_id": "biddrop",
+    "storage_bucket": "biddrop.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:530946880501:android:4baff4e09c7133902266bc",
+        "android_client_info": {
+          "package_name": "com.biddrop.app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyA-_8PsvP8C9Q48mb07rJYb27cGUtYNWbk"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
