@@ -15,10 +15,10 @@ def test_rating_features():
     assert rating_features(25, 20)[0] == -5.0  # early = negative delay
 
 
-def test_customer_weight_ramps_then_stops_at_70_percent():
+def test_customer_weight_ramps_then_stops_at_30_percent():
     assert customer_weight(0) == 0
-    assert customer_weight(10) == pytest.approx(0.35)
-    assert customer_weight(20) == pytest.approx(0.7)
+    assert customer_weight(10) == pytest.approx(0.15)
+    assert customer_weight(20) == pytest.approx(0.3)
     assert customer_weight(400) == pytest.approx(CUSTOMER_WEIGHT_MAX)
 
 
@@ -43,9 +43,9 @@ def test_newbie_who_keeps_getting_five_stars_overtakes_veteran():
     assert newbie["trust_score"] > veteran["trust_score"]
 
 
-def test_veteran_score_is_70_customers_30_model():
+def test_veteran_score_is_30_customers_70_model():
     t = calculate_trust_score(avg_rating=4.0, num_ratings=400, delivery_scores=[5] * 400)
-    expected = 0.7 * 4.0 + 0.3 * model_part([5] * 400)
+    expected = 0.3 * 4.0 + 0.7 * model_part([5] * 400)
     assert t["trust_score"] == pytest.approx(expected, abs=0.01)
     assert not t["is_new_courier"]
 

@@ -54,7 +54,7 @@ FEATURE_COLUMNS = [
     "Distance_km",
     "Order_DayOfWeek",
 ]
-TARGET = "Time_taken (min)"
+TARGET = "Net_Delivery_Time_min"
 
 # Features the app never collects: in the app they get these defaults
 # (same values as DEFAULT_FEATURES in Backend/ml_predictor.py). Used for the realistic evaluation.

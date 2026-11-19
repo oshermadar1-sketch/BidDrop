@@ -1,5 +1,5 @@
 {
-  "trained_at": "2026-10-13T13:48:47+00:00",
+  "trained_at": "2026-11-19T19:52:50+00:00",
   "data": "Zomato_Final_Preprocessed.csv",
   "rows_total": 33527,
   "rows_train": 26821,
@@ -22,25 +22,25 @@
     "Order_DayOfWeek"
   ],
   "test_metrics": {
-    "MAE_min": 2.97,
-    "RMSE_min": 3.68,
-    "R2": 0.8315
+    "MAE_min": 4.39,
+    "RMSE_min": 5.38,
+    "R2": 0.6795
   },
   "test_metrics_app_inputs": {
-    "MAE_min": 4.53,
-    "RMSE_min": 5.94,
-    "R2": 0.5623
+    "MAE_min": 5.53,
+    "RMSE_min": 6.91,
+    "R2": 0.4699
   },
   "test_metrics_app_inputs_with_courier_profile": {
-    "MAE_min": 3.16,
-    "RMSE_min": 3.94,
-    "R2": 0.8071
+    "MAE_min": 4.49,
+    "RMSE_min": 5.51,
+    "R2": 0.6637
   },
   "app_inputs_note": "features never collected by the app set to defaults: multiple_deliveries, Festival, City, Type_of_order; without courier profile also: Delivery_person_Age, Vehicle_condition, Type_of_vehicle",
   "baseline_predict_mean": {
-    "MAE_min": 7.26,
-    "RMSE_min": 8.98,
-    "R2": -0.0001
+    "MAE_min": 7.77,
+    "RMSE_min": 9.5,
+    "R2": -0.0
   },
   "rating_model": {
     "model": "HistGradientBoostingRegressor (monotonic: later -> lower)",
@@ -50,12 +50,12 @@
     ],
     "label": "Delivery_person_Ratings (courier rating, 1..5)",
     "test_metrics": {
-      "MAE_stars": 0.214,
-      "R2": 0.1867
+      "MAE_stars": 0.217,
+      "R2": 0.1499
     },
     "linear_regression": {
-      "MAE_stars": 0.22,
-      "R2": 0.1452
+      "MAE_stars": 0.222,
+      "R2": 0.1186
     },
     "baseline_predict_mean": {
       "MAE_stars": 0.231,

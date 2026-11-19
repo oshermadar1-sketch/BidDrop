@@ -12,14 +12,14 @@ model_part     machine-learning score of the courier's deliveries. After each de
                courier starts at the typical score and each real delivery moves it.
 w              customer weight. 0 for a new courier (no ratings yet), grows linearly with the
                number of ratings and stops at CUSTOMER_WEIGHT_MAX after RAMP_RATINGS ratings,
-               so from then on the score is 70% customers / 30% model.
+               so from then on the score is 30% customers / 70% model.
 
 Kept free of database and model imports so the math can be unit-tested on its own.
 """
 import json
 import os
 
-CUSTOMER_WEIGHT_MAX = 0.7
+CUSTOMER_WEIGHT_MAX = 0.3
 RAMP_RATINGS = 20
 MODEL_CUSHION = 5
 

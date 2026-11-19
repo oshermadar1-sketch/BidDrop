@@ -9,7 +9,7 @@ Per delivery: the delay = lateness + noise; only RATED_SHARE of customers leave 
 driven mostly by niceness and only a little by the delay (customers do not know the expected
 time); the delivery always gets a model-2 score from the REAL rating model (Backend/rating_model.pkl).
 
-For every customer-weight cap (the 70% in 70/30) we compute the trust score exactly like the app
+For every customer-weight cap (the 30% in 30/70) we compute the trust score exactly like the app
 (Backend/trust_score.py) after K deliveries and measure, with Spearman rank correlation, how well
 it ranks couriers by their hidden quality. Hidden quality = PUNCTUALITY_SHARE * punctuality +
 (1 - PUNCTUALITY_SHARE) * niceness (standardized), for several shares, because the best weight
@@ -135,7 +135,7 @@ LABELS = {
         "x": "customer weight cap (%)",
         "y": "rank correlation with true quality",
         "line": "after {k} deliveries",
-        "ours": "70/30 (our choice)",
+        "ours": "30/70 (our choice)",
         "title": "Simulation (synthetic couriers): trust score weight vs. ranking quality",
         "file": "trust_weight_simulation.png",
     },
@@ -144,7 +144,7 @@ LABELS = {
         "x": "משקל הלקוחות בציון (%)",
         "y": "התאמה לאיכות האמיתית",
         "line": "אחרי {k} משלוחים",
-        "ours": "70/30 (הבחירה שלנו)",
+        "ours": "30/70 (הבחירה שלנו)",
         "title": "סימולציה (שליחים מדומים): משקל הלקוחות בציון מול דיוק הדירוג",
         "file": "trust_weight_simulation_he.png",
     },
@@ -171,7 +171,7 @@ def plot_charts(table):
                 row = table.loc[(share, k)]
                 ax.plot(caps_pct, [row[f"{p}/{100 - p}"] for p in caps_pct], marker="o",
                         label=t(L["line"].format(k=k)))
-            ax.axvline(70, color="gray", linestyle=":", linewidth=1, label=t(L["ours"]))
+            ax.axvline(30, color="gray", linestyle=":", linewidth=1, label=t(L["ours"]))
             ax.set_title(t(L["panel"].format(p=int(share * 100))))
             ax.set_xlabel(t(L["x"]))
             ax.grid(alpha=0.3)
