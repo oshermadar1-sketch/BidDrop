@@ -31,18 +31,21 @@ def delivery_model_score(asn: Assignment, req: Request) -> Optional[float]:
     """
     ML score (1..5) of one completed delivery, or None if it cannot be timed: model 2's
     expected customer rating for how long it took compared with model 1's prediction.
-    Actual time: from when the courier could start (assignment time, or the request's
-    window start if later) until completion. Predicted time: the ML model for the same
-    route, day, weather and traffic, with a typical courier, so every courier is judged
-    against the same yardstick.
+    Actual time: from pickup (the courier marked "picked up") until completion, the same
+    stretch the prediction covers (pickup to drop-off). If no pickup time was recorded,
+    from when the courier could start (assignment time, or the request's window start if
+    later). Predicted time: the ML model for the same route, day, weather and traffic,
+    with a typical courier, so every courier is judged against the same yardstick.
     Deliveries that cannot be timed, or that were suspiciously fast (under
     MIN_REALISTIC_SHARE of the prediction), return None and are not counted.
     """
     completed = _utc(asn.completed_at)
-    start = _utc(asn.assigned_at)
-    window_start = _utc(getattr(req, "window_start", None))
-    if window_start and start and window_start > start:
-        start = window_start
+    start = _utc(getattr(asn, "picked_up_at", None))
+    if start is None:
+        start = _utc(asn.assigned_at)
+        window_start = _utc(getattr(req, "window_start", None))
+        if window_start and start and window_start > start:
+            start = window_start
     if not completed or not start or completed <= start:
         return None
 

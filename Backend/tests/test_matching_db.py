@@ -54,14 +54,17 @@ def _request(db, owner, status="open", **kw):
     return r
 
 
-def _history(db, sender, driver, score, minutes, count):
-    """`count` completed deliveries of `driver`, each taking `minutes` and rated `score`."""
+def _history(db, sender, driver, score, minutes, count, pickup_after=None):
+    """`count` completed deliveries of `driver`, each taking `minutes` and rated `score`.
+    With `pickup_after`, the courier marks "picked up" that many minutes after assignment."""
     for _ in range(count):
         req = _request(db, sender, status="completed")
+        assigned = NOW - timedelta(days=1)
         asn = Assignment(
             request_id=req.id, driver_user_id=driver.id, agreed_price_cents=1000,
-            status="completed", assigned_at=NOW - timedelta(days=1),
-            completed_at=NOW - timedelta(days=1) + timedelta(minutes=minutes),
+            status="completed", assigned_at=assigned,
+            picked_up_at=assigned + timedelta(minutes=pickup_after) if pickup_after is not None else None,
+            completed_at=assigned + timedelta(minutes=minutes),
         )
         db.add(asn)
         db.flush()
@@ -165,6 +168,22 @@ def test_suspiciously_fast_delivery_is_not_counted(Session):
     assert t["num_ratings"] == 3            # the ratings still count
     assert t["num_timed_deliveries"] == 0   # the times do not
     assert t["model_part"] == pytest.approx(PRIORS["typical_model_score"], abs=0.01)
+
+
+def test_time_is_measured_from_pickup(Session):
+    """The way to the pickup point is not counted as lateness: same pickup-to-drop-off
+    time, with or without a long drive to the pickup, gives the same model score."""
+    with Session() as db:
+        sender = _user(db, "sender")
+        near = _user(db, "driver")
+        far = _user(db, "driver")
+        _history(db, sender, near, score=5, minutes=22, count=3, pickup_after=2)
+        _history(db, sender, far, score=5, minutes=60, count=3, pickup_after=40)
+        db.commit()
+        t_near = get_courier_trust(db, near.id)
+        t_far = get_courier_trust(db, far.id)
+    assert t_near["num_timed_deliveries"] == t_far["num_timed_deliveries"] == 3
+    assert t_far["model_part"] == pytest.approx(t_near["model_part"], abs=0.01)
 
 
 def test_schema_upgrade_adds_profile_columns_and_is_repeatable(Session):
