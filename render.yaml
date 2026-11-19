@@ -1,0 +1,15 @@
+services:
+  - type: web
+    name: biddrop-api
+    runtime: docker
+    plan: free
+    region: frankfurt
+    dockerfilePath: ./Dockerfile
+    healthCheckPath: /health
+    envVars:
+      - key: DATABASE_URL
+        sync: false
+      - key: ALLOW_ORIGINS
+        sync: false
+      - key: JWT_SECRET
+        generateValue: true
