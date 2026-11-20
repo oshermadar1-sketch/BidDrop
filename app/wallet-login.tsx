@@ -13,6 +13,7 @@ import {
   AppStateStatus,
   ScrollView,
   Alert,
+  Platform,
 } from "react-native";
 import * as Linking from "expo-linking";
 import QRCode from "react-native-qrcode-svg";
@@ -33,6 +34,17 @@ import {
   bringSubWalletToFront,
 } from "../lib/wc";
 import { getNonce, verifySignature, getMyProfile } from "../lib/api";
+
+// WalletConnect pairing proposals are valid for 5 minutes. After that the QR
+// is useless and the user has to start a new pairing.
+const WC_PROPOSAL_TTL_MS = 5 * 60 * 1000;
+const WC_EXPIRED_MSG =
+  'קוד ה-QR פג תוקף (5 דקות). לחץ/י שוב על "התחבר/י עם SubWallet" כדי ליצור קוד חדש.';
+
+function isWcExpiredError(e: any): boolean {
+  const msg = String(e?.message ?? e ?? "").toLowerCase();
+  return msg.includes("expired");
+}
 
 const COLORS = {
   bg: "#ffffff",
@@ -147,11 +159,57 @@ export default function WalletLogin() {
       setWcUri(null);
       await requestNonce(s.address);
     } catch (e: any) {
-      setErr(e?.message || "Wallet approval failed");
+      if (isWcExpiredError(e)) {
+        approvalPromiseRef.current = null;
+        setWcUri(null);
+        setErr(WC_EXPIRED_MSG);
+      } else {
+        setErr(e?.message || "Wallet approval failed");
+      }
     } finally {
       finalizingRef.current = false;
     }
   }, [requestNonce]);
+
+  // Drop the QR locally once the proposal TTL has passed.
+  useEffect(() => {
+    if (!wcUri || session) return;
+    const t = setTimeout(() => {
+      approvalPromiseRef.current = null;
+      setWcUri(null);
+      setErr(WC_EXPIRED_MSG);
+    }, WC_PROPOSAL_TTL_MS);
+    return () => clearTimeout(t);
+  }, [wcUri, session]);
+
+  // On web the WalletConnect client also raises the expiry from an internal
+  // timer; without this it shows up as an uncaught error instead of a message.
+  useEffect(() => {
+    if (Platform.OS !== "web" || typeof window === "undefined") return;
+    const expire = () => {
+      approvalPromiseRef.current = null;
+      setWcUri(null);
+      setErr(WC_EXPIRED_MSG);
+    };
+    const onError = (ev: any) => {
+      if (isWcExpiredError(ev?.error ?? ev?.message)) {
+        ev.preventDefault?.();
+        expire();
+      }
+    };
+    const onRejection = (ev: any) => {
+      if (isWcExpiredError(ev?.reason)) {
+        ev.preventDefault?.();
+        expire();
+      }
+    };
+    window.addEventListener("error", onError);
+    window.addEventListener("unhandledrejection", onRejection);
+    return () => {
+      window.removeEventListener("error", onError);
+      window.removeEventListener("unhandledrejection", onRejection);
+    };
+  }, []);
 
   // Bring user back from wallet -> app to finalize
   useEffect(() => {
@@ -464,10 +522,10 @@ const styles = StyleSheet.create({
     color: COLORS.text,
     marginBottom: 8,
     writingDirection: "rtl",
-    textAlign: "left",
+    textAlign: "right",
   },
   stepRow: {
-    flexDirection: "row",
+    flexDirection: "row-reverse",
     justifyContent: "flex-start",
     alignItems: "center",
     marginBottom: 8,
@@ -479,7 +537,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#f3f4f6",
     alignItems: "center",
     justifyContent: "center",
-    marginRight: 10,
+    marginLeft: 10,
     borderWidth: StyleSheet.hairlineWidth,
     borderColor: COLORS.border,
   },
@@ -497,7 +555,7 @@ const styles = StyleSheet.create({
   stepLabel: {
     fontWeight: "800",
     fontSize: 14,
-    writingDirection: "ltr",
+    writingDirection: "rtl",
     textAlign: "right",
     flexShrink: 1,
   },
