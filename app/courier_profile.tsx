@@ -77,7 +77,7 @@ export default function CourierProfile() {
       return;
     }
     if (!ok) {
-      Alert.alert("שימי לב", "מלאי גיל (16-80), סוג רכב ומצב הרכב");
+      Alert.alert("שים/י לב", "מלא/י גיל (16-80), סוג רכב ומצב הרכב");
       return;
     }
     try {

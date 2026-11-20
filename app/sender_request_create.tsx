@@ -105,7 +105,7 @@ export default function SenderRequestCreate() {
       return;
     }
     if (!מוכן) {
-      Alert.alert("שימי לב", "מלאי את כל השדות החיוניים לפני פרסום הבקשה");
+      Alert.alert("שים/י לב", "מלא/י את כל השדות החיוניים לפני פרסום הבקשה");
       return;
     }
     try {
@@ -220,7 +220,7 @@ if (!requestId) {
               <Text style={S.label}>כתובת איסוף *</Text>
               <AddressAutocomplete
                 inputStyle={S.input}
-                placeholder="התחילי להקליד, לדוגמה: בן גוריון 10, תל אביב"
+                placeholder="התחל/י להקליד, לדוגמה: בן גוריון 10, תל אביב"
                 value={fromAddress}
                 onChangeText={(t) => {
                   setFromAddress(t);
@@ -233,7 +233,7 @@ if (!requestId) {
               <Text style={S.label}>כתובת יעד *</Text>
               <AddressAutocomplete
                 inputStyle={S.input}
-                placeholder="התחילי להקליד, לדוגמה: הרצל 5, ראשון לציון"
+                placeholder="התחל/י להקליד, לדוגמה: הרצל 5, ראשון לציון"
                 value={toAddress}
                 onChangeText={(t) => {
                   setToAddress(t);
@@ -254,7 +254,7 @@ if (!requestId) {
               >
                 <Text style={S.pickerLabel}>התחלה *</Text>
                 <Text style={S.pickerValue}>
-                  {startDT ? fmt(startDT) : "בחרי תאריך ושעה"}
+                  {startDT ? fmt(startDT) : "בחר/י תאריך ושעה"}
                 </Text>
               </TouchableOpacity>
               <TouchableOpacity
@@ -263,7 +263,7 @@ if (!requestId) {
               >
                 <Text style={S.pickerLabel}>סיום *</Text>
                 <Text style={S.pickerValue}>
-                  {endDT ? fmt(endDT) : "בחרי תאריך ושעה"}
+                  {endDT ? fmt(endDT) : "בחר/י תאריך ושעה"}
                 </Text>
               </TouchableOpacity>
             </View>
@@ -352,7 +352,7 @@ if (!requestId) {
                 textAlign="right"
               />
               <Text style={S.hint}>
-                זהו הסכום המקסימלי שאת מוכנה לשלם על המשלוח.
+                זהו הסכום המקסימלי שאת/ה מוכנ/ה לשלם על המשלוח.
               </Text>
             </View>
           </View>
@@ -382,8 +382,8 @@ if (!requestId) {
           <View style={S.modalSheet}>
             <Text style={S.modalTitle}>
               {dtTarget === "start"
-                ? "בחרי תאריך ושעה - התחלה"
-                : "בחרי תאריך ושעה - סיום"}
+                ? "בחר/י תאריך ושעה - התחלה"
+                : "בחר/י תאריך ושעה - סיום"}
             </Text>
             <UIDatePicker
               mode="single"

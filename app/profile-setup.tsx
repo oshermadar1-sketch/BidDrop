@@ -77,7 +77,7 @@ export default function ProfileSetup() {
 
   async function handleSave() {
     if (!ok) {
-      Alert.alert("שימי לב", "נא למלא את כל השדות.");
+      Alert.alert("שים/י לב", "נא למלא את כל השדות.");
       return;
     }
     try {
@@ -119,7 +119,7 @@ export default function ProfileSetup() {
           <View style={styles.card}>
             <Text style={styles.title}>פרטים אישיים</Text>
             <Text style={styles.subtitle}>
-              מלאי את פרטייך כדי להשלים את ההרשמה.
+              מלא/י את הפרטים שלך כדי להשלים את ההרשמה.
             </Text>
 
             <View style={styles.field}>

@@ -373,7 +373,7 @@ export default function WalletLogin() {
                   {busy === "signing" || busy === "verifying" ? (
                     <ActivityIndicator />
                   ) : (
-                    <Text style={styles.btnPrimaryText}>חתמי ואשרי</Text>
+                    <Text style={styles.btnPrimaryText}>חתום/י ואשר/י</Text>
                   )}
                 </TouchableOpacity>
               )}

@@ -587,7 +587,7 @@ if (newStatus === "completed") {
             <View style={S.sheetContainer}>
               <Text style={S.sheetTitle}>בחירת סטטוס</Text>
               <Text style={S.sheetSubtitle}>
-                בחרי את הסטטוס הבא למשימה לפי ההתקדמות בפועל
+                בחר/י את הסטטוס הבא למשימה לפי ההתקדמות בפועל
               </Text>
 
               {nextOptions.map((st) => (

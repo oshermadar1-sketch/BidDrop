@@ -54,7 +54,7 @@ export default function HomeScreen() {
         if (mounted) setMe(user);
       } catch (e: any) {
         console.log("[Home] getMe error:", e?.message || e);
-        Alert.alert("שגיאה", "נכשל לטעון משתמש. נסי להתחבר מחדש.", [
+        Alert.alert("שגיאה", "נכשל לטעון משתמש. נסה/י להתחבר מחדש.", [
           { text: "אישור", onPress: () => router.replace("/wallet-login") },
         ]);
       } finally {
@@ -83,11 +83,11 @@ export default function HomeScreen() {
   }
 
   function enableLocation() {
-    Alert.alert("מיקום", "נוסיף בקשת הרשאה עם expo-location כשתרצי.");
+    Alert.alert("מיקום", "נוסיף בקשת הרשאה עם expo-location כשתרצה/י.");
   }
 
   function openHelp() {
-    Alert.alert("עזרה", "צריך עזרה? כתבי לנו: support@biddrop.example");
+    Alert.alert("עזרה", "צריך עזרה? כתוב/י לנו: support@biddrop.example");
   }
 
   return (

@@ -91,7 +91,7 @@ export default function CourierOfferCreate() {
       return;
     }
     if (!מוכן) {
-      Alert.alert("שימי לב", "מלאי את כל השדות החיוניים לפני פרסום ההצעה");
+      Alert.alert("שים/י לב", "מלא/י את כל השדות החיוניים לפני פרסום ההצעה");
       return;
     }
     try {
@@ -192,7 +192,7 @@ export default function CourierOfferCreate() {
               <Text style={S.label}>נקודת מוצא *</Text>
               <AddressAutocomplete
                 inputStyle={S.input}
-                placeholder="התחילי להקליד, לדוגמה: דרך השלום 10, תל אביב"
+                placeholder="התחל/י להקליד, לדוגמה: דרך השלום 10, תל אביב"
                 value={fromAddress}
                 onChangeText={(t) => {
                   setFromAddress(t);
@@ -232,7 +232,7 @@ export default function CourierOfferCreate() {
                 <Text style={S.label}>יעד *</Text>
                 <AddressAutocomplete
                   inputStyle={S.input}
-                  placeholder="התחילי להקליד, לדוגמה: חיפה"
+                  placeholder="התחל/י להקליד, לדוגמה: חיפה"
                   value={toAddress}
                   onChangeText={(t) => {
                     setToAddress(t);
@@ -276,7 +276,7 @@ export default function CourierOfferCreate() {
           <View style={S.card}>
             <Text style={S.cardTitle}>סוגי משימות ומחיר</Text>
 
-            <Text style={S.label}>אני מעוניין לבצע *</Text>
+            <Text style={S.label}>אני מעוניין/ת לבצע *</Text>
             <View style={[S.row2, { marginTop: 8 }]}>
               <TouchableOpacity
                 style={[

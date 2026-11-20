@@ -93,7 +93,7 @@ export default function RiderRequestCreate() {
       return;
     }
     if (!מוכן) {
-      Alert.alert("שימי לב", "מלאי את כל השדות החיוניים לפני פרסום הבקשה");
+      Alert.alert("שים/י לב", "מלא/י את כל השדות החיוניים לפני פרסום הבקשה");
       return;
     }
     try {
@@ -190,7 +190,7 @@ export default function RiderRequestCreate() {
               <Text style={S.label}>נקודת יציאה *</Text>
 <AddressAutocomplete
                 inputStyle={S.input}
-                placeholder="התחילי להקליד, לדוגמה: בן גוריון 10, תל אביב"
+                placeholder="התחל/י להקליד, לדוגמה: בן גוריון 10, תל אביב"
                 value={fromAddress}
                 onChangeText={(t) => {
                   setFromAddress(t);
@@ -203,7 +203,7 @@ export default function RiderRequestCreate() {
               <Text style={S.label}>יעד *</Text>
 <AddressAutocomplete
                 inputStyle={S.input}
-                placeholder="התחילי להקליד, לדוגמה: הרצל 5, ראשון לציון"
+                placeholder="התחל/י להקליד, לדוגמה: הרצל 5, ראשון לציון"
                 value={toAddress}
                 onChangeText={(t) => {
                   setToAddress(t);
@@ -224,7 +224,7 @@ export default function RiderRequestCreate() {
               >
                 <Text style={S.pickerLabel}>התחלה *</Text>
                 <Text style={S.pickerValue}>
-                  {startDT ? fmt(startDT) : "בחרי תאריך ושעה"}
+                  {startDT ? fmt(startDT) : "בחר/י תאריך ושעה"}
                 </Text>
               </TouchableOpacity>
               <TouchableOpacity
@@ -233,7 +233,7 @@ export default function RiderRequestCreate() {
               >
                 <Text style={S.pickerLabel}>סיום *</Text>
                 <Text style={S.pickerValue}>
-                  {endDT ? fmt(endDT) : "בחרי תאריך ושעה"}
+                  {endDT ? fmt(endDT) : "בחר/י תאריך ושעה"}
                 </Text>
               </TouchableOpacity>
             </View>
@@ -254,7 +254,7 @@ export default function RiderRequestCreate() {
                 textAlign="right"
               />
               <Text style={S.hint}>
-                מינימום 1. הזיני את מספר המקומות הנדרש.
+                מינימום 1. הזן/י את מספר המקומות הנדרש.
               </Text>
             </View>
           </View>
@@ -317,8 +317,8 @@ export default function RiderRequestCreate() {
           <View style={S.modalSheet}>
             <Text style={S.modalTitle}>
               {dtTarget === "start"
-                ? "בחרי תאריך ושעה - התחלה"
-                : "בחרי תאריך ושעה - סיום"}
+                ? "בחר/י תאריך ושעה - התחלה"
+                : "בחר/י תאריך ושעה - סיום"}
             </Text>
             <UIDatePicker
               mode="single"
