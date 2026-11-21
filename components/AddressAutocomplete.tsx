@@ -77,7 +77,12 @@ export function AddressAutocomplete({
         const url = `${PHOTON_URL}?q=${encodeURIComponent(
           q
         )}&limit=6&bbox=${ISRAEL_BBOX}`;
-        const res = await fetch(url, { signal: ctrl.signal });
+        // Photon refuses the default identity of Android's HTTP client (okhttp) with
+        // 403, so the app names itself. Browsers ignore this header, which is fine.
+        const res = await fetch(url, {
+          signal: ctrl.signal,
+          headers: { "User-Agent": "BidDrop/1.0 (student project; address suggestions)" },
+        });
         const data = await res.json();
         const seen = new Set<string>();
         const items: PickedAddress[] = [];
