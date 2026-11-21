@@ -772,7 +772,10 @@ const S = StyleSheet.create({
   heroImg: { width: "100%", height: HERO_H, backgroundColor: "transparent" },
 
   details: {
-    marginTop: WAVE_H - 12,
+    // paddingTop (not marginTop): Android does not count a content margin in
+    // the scrollable height, which left the rating box and the payment button
+    // below the reachable area.
+    paddingTop: WAVE_H - 12,
     paddingHorizontal: 16,
     paddingBottom: 40,
     gap: 12,
