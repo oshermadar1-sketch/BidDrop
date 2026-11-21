@@ -13,14 +13,14 @@ import {
   Pressable,
   ScrollView,
 } from "react-native";
-import { useLocalSearchParams, Stack } from "expo-router";
+import { useLocalSearchParams, useRouter, Stack } from "expo-router";
 import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
 import {
   getAssignmentById,
   getAssignmentByRequest,
   updateAssignmentStatus,
-  confirmAssignmentDelivered, // (no longer used but kept for now – safe to remove if you want)
+  confirmAssignmentDelivered,
   confirmEscrowDelivered,
   type AssignmentDetailOut,
   type AssignmentStatus,
@@ -138,6 +138,7 @@ const STATUS_LABELS: Record<AssignmentStatus, string> = {
 export default function RequestDetailsScreen() {
   const { assignment_id, request_id, token, mode } =
     useLocalSearchParams<Params>();
+  const router = useRouter();
 
   const [data, setData] = useState<AssignmentDetailOut | null>(null);
   const [loading, setLoading] = useState(true);
@@ -272,10 +273,27 @@ export default function RequestDetailsScreen() {
     try {
       setConfirmingDelivered(true);
 
-      await confirmEscrowDelivered(String(token), String(aid));
+      if (data.payment_status === "deposited") {
+        // Money is held in escrow: confirming releases it to the courier.
+        await confirmEscrowDelivered(String(token), String(aid));
+      } else {
+        // No escrow for this delivery (not paid yet): just record the confirmation.
+        await confirmAssignmentDelivered(String(token), String(aid));
+      }
 
       const refreshed = await getAssignmentById(String(aid));
       setData(refreshed);
+
+      // Continue to the match screen, where the customer can rate the courier.
+      router.push({
+        pathname: "/assignment_details",
+        params: {
+          role: isSenderView ? "sender" : "rider",
+          token: String(token),
+          requestId: String(refreshed.request_id ?? request_id ?? ""),
+          assignmentId: String(aid),
+        },
+      });
     } catch (e: any) {
       setErr(
         e?.message ||
