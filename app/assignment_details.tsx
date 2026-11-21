@@ -488,16 +488,15 @@ export default function AssignmentDetails() {
   return (
     <View style={S.page}>
       <BackButton />
-      {/* fixed top layer */}
-      <View style={S.header}>
-        <GreenDiagonalWave />
-        <View style={[S.heroWrap, { transform: [{ translateY: heroOffset }] }]}>
-          <Image source={heroImage} style={S.heroImg} resizeMode="contain" />
+      {/* The hero scrolls with the content, so the title never slides over the picture */}
+      <ScrollView style={{ flex: 1 }} contentContainerStyle={S.scroll}>
+        <View style={S.header}>
+          <GreenDiagonalWave />
+          <View style={[S.heroWrap, { transform: [{ translateY: heroOffset }] }]}>
+            <Image source={heroImage} style={S.heroImg} resizeMode="contain" />
+          </View>
         </View>
-      </View>
-
-      {/* content scrolls over the fixed header (rating box can be below the fold) */}
-      <ScrollView style={{ flex: 1 }} contentContainerStyle={S.details}>
+        <View style={S.details}>
         <Text style={S.kind}>{kind}</Text>
 
         {/* Route pill – LTR: FROM (left) → arrow-forward → TO (right) */}
@@ -600,6 +599,7 @@ export default function AssignmentDetails() {
             </Text>
           </TouchableOpacity>
         )}
+        </View>
       </ScrollView>
     </View>
   );
@@ -752,12 +752,10 @@ const S = StyleSheet.create({
   page: { flex: 1, backgroundColor: BG },
 
   header: {
-    position: "absolute",
-    top: 0,
-    left: 0,
-    right: 0,
     height: WAVE_H,
+    overflow: "hidden",
   },
+  scroll: { paddingBottom: 40 },
   waveSvg: { position: "absolute", top: 0, left: 0 },
 
   heroWrap: {
@@ -774,12 +772,8 @@ const S = StyleSheet.create({
   heroImg: { width: "100%", height: HERO_H, backgroundColor: "transparent" },
 
   details: {
-    // paddingTop (not marginTop): Android does not count a content margin in
-    // the scrollable height, which left the rating box and the payment button
-    // below the reachable area.
-    paddingTop: WAVE_H - 12,
+    paddingTop: 8,
     paddingHorizontal: 16,
-    paddingBottom: 40,
     gap: 12,
     justifyContent: "flex-start",
   },
