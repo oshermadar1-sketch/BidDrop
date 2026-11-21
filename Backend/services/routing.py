@@ -8,8 +8,8 @@
 #   * after a failure the server is skipped for a cool-down period instead of retried
 #     on every call.
 #
-# The delivery-time model (ml_predictor.py) keeps the air distance on purpose: it was
-# trained on straight-line distances, so feeding it road distances would bias it.
+# The delivery-time model (ml_predictor.py) also uses the road distance: it was trained
+# on road distances of the same routes (preprocess.py, Zomato_Road_Distances.csv).
 #
 # Environment:
 #   ROUTING_PROVIDER      "osrm" (default) or "air" (never call the network)
