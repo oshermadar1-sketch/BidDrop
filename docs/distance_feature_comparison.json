@@ -6,7 +6,7 @@
   },
   "road_over_air_median_ratio": 1.41,
   "variants": {
-    "air distance (current)": {
+    "air distance (before)": {
       "features": [
         "Delivery_person_Age",
         "Delivery_person_Ratings",
@@ -39,7 +39,7 @@
       "cv5_MAE_min": 4.41,
       "cv5_MAE_std": 0.02
     },
-    "road distance": {
+    "road distance (current)": {
       "features": [
         "Delivery_person_Age",
         "Delivery_person_Ratings",

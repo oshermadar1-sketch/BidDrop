@@ -27,10 +27,10 @@ import ml_model as mm  # noqa: E402
 
 OUT = os.path.join(ROOT, "docs", "distance_feature_comparison.json")
 
-BASE = [c for c in mm.FEATURE_COLUMNS if c != "Distance_km"]
+BASE = [c for c in mm.FEATURE_COLUMNS if c not in ("Distance_km", "Road_Distance_km")]
 VARIANTS = {
-    "air distance (current)": BASE + ["Distance_km"],
-    "road distance": BASE + ["Road_Distance_km"],
+    "air distance (before)": BASE + ["Distance_km"],
+    "road distance (current)": BASE + ["Road_Distance_km"],
     "road distance + driving time": BASE + ["Road_Distance_km", "Road_Duration_min"],
     "air + road distance": BASE + ["Distance_km", "Road_Distance_km"],
 }

@@ -5,6 +5,7 @@ from datetime import datetime, timezone
 import joblib
 import pandas as pd
 
+from .services import routing
 from .services.conditions import estimate_traffic, get_weather
 from .trust_score import rating_features
 
@@ -27,7 +28,7 @@ FEATURE_COLUMNS = [
     "multiple_deliveries",
     "Festival",
     "City",
-    "Distance_km",
+    "Road_Distance_km",  # road distance (OpenStreetMap routing), as in training
     "Order_DayOfWeek",
 ]
 
@@ -58,9 +59,13 @@ DEFAULT_FEATURES = {
     "multiple_deliveries": 1.0,
     "Festival": "No",
     "City": "Metropolitian",
-    "Distance_km": 9.3,
+    "Road_Distance_km": 13.3,
     "Order_DayOfWeek": "Wednesday",
 }
+
+# Median road/air ratio of the training routes (preprocess.py). Used when the routing
+# server is unavailable and only the straight-line distance is known.
+ROAD_OVER_AIR = 1.41
 
 
 def haversine_km(lat1, lon1, lat2, lon2):
@@ -69,6 +74,16 @@ def haversine_km(lat1, lon1, lat2, lon2):
     a = (math.sin((lat2 - lat1) / 2) ** 2
          + math.cos(lat1) * math.cos(lat2) * math.sin((lon2 - lon1) / 2) ** 2)
     return 2 * 6371.0 * math.asin(math.sqrt(a))
+
+
+def road_km(lat1, lon1, lat2, lon2):
+    """
+    Road distance in km from the routing service, the same quantity the model was trained
+    on. If the server cannot be reached, the straight line scaled by the typical road/air
+    ratio keeps the prediction in the right range.
+    """
+    leg = routing.leg(lat1, lon1, lat2, lon2)
+    return leg.distance_km if leg.source == "osrm" else leg.distance_km * ROAD_OVER_AIR
 
 
 def build_features(**known):
@@ -122,9 +137,9 @@ def features_for_request(req, courier_rating=None, courier_lat=None, courier_lon
     pickup = (getattr(req, "from_lat", None), getattr(req, "from_lon", None))
     dropoff = (getattr(req, "to_lat", None), getattr(req, "to_lon", None))
     if None not in pickup and None not in dropoff:
-        distance = haversine_km(*pickup, *dropoff)
+        distance = road_km(*pickup, *dropoff)
         if courier_lat is not None and courier_lon is not None:
-            distance += haversine_km(courier_lat, courier_lon, *pickup)
+            distance += road_km(courier_lat, courier_lon, *pickup)
 
     if when is None:
         when = getattr(req, "window_start", None)
@@ -134,7 +149,7 @@ def features_for_request(req, courier_rating=None, courier_lat=None, courier_lon
     rating = float(courier_rating) if courier_rating is not None else None
 
     return build_features(
-        Distance_km=distance,
+        Road_Distance_km=distance,
         Order_DayOfWeek=when.strftime("%A"),
         Weather_conditions=get_weather(*pickup, when),
         Road_traffic_density=estimate_traffic(when),

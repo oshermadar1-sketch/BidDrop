@@ -51,7 +51,7 @@ FEATURE_COLUMNS = [
     "multiple_deliveries",
     "Festival",
     "City",
-    "Distance_km",
+    "Road_Distance_km",  # road distance from OpenStreetMap routing (preprocess.py)
     "Order_DayOfWeek",
 ]
 TARGET = "Net_Delivery_Time_min"

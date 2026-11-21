@@ -3,6 +3,7 @@ from types import SimpleNamespace
 
 import pytest
 
+from Backend.services import routing
 from Backend.ml_predictor import (
     DEFAULT_FEATURES,
     build_features,
@@ -10,6 +11,14 @@ from Backend.ml_predictor import (
     haversine_km,
     predict_delivery_time,
 )
+
+
+@pytest.fixture(autouse=True)
+def _no_routing_network(monkeypatch):
+    """Distances in these tests come from the straight line scaled by the road/air ratio."""
+    monkeypatch.setattr(routing, "PROVIDER", "air")
+    routing.reset_for_tests()
+
 
 # Tel Aviv (Azrieli) -> Ramat Gan (Bursa), about 3 km
 REQ = SimpleNamespace(
@@ -36,12 +45,12 @@ def test_unknown_feature_is_rejected():
 
 
 def test_none_keeps_default():
-    assert build_features(Distance_km=None)["Distance_km"] == DEFAULT_FEATURES["Distance_km"]
+    assert build_features(Road_Distance_km=None)["Road_Distance_km"] == DEFAULT_FEATURES["Road_Distance_km"]
 
 
 def test_features_from_request():
     f = features_for_request(REQ, courier_rating=4.9)
-    assert f["Distance_km"] == pytest.approx(1.35, abs=0.1)
+    assert f["Road_Distance_km"] == pytest.approx(1.35 * 1.41, abs=0.15)  # air distance x road/air ratio
     assert f["Order_DayOfWeek"] == "Tuesday"
     assert f["Road_traffic_density"] == "High"  # 13:00 Israel time
     assert f["Delivery_person_Ratings"] == 4.9
@@ -50,12 +59,12 @@ def test_features_from_request():
 def test_courier_start_point_adds_distance():
     near = features_for_request(REQ)
     far = features_for_request(REQ, courier_lat=32.1663, courier_lon=34.8436)  # Herzliya
-    assert far["Distance_km"] > near["Distance_km"] + 5
+    assert far["Road_Distance_km"] > near["Road_Distance_km"] + 5
 
 
 def test_prediction_is_plausible_and_longer_for_far_trips():
-    short = predict_delivery_time(build_features(Distance_km=2))
-    long = predict_delivery_time(build_features(Distance_km=20))
+    short = predict_delivery_time(build_features(Road_Distance_km=2))
+    long = predict_delivery_time(build_features(Road_Distance_km=20))
     assert 5 < short < 60 and 5 < long < 60
     assert long > short
 
