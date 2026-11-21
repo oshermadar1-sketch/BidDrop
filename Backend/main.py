@@ -22,6 +22,7 @@ except Exception:  # pragma: no cover
 # Routers
 from .routes_users import router as users_router
 from .routes_auth import router as auth_router
+from .routes_account import router as account_router
 from .routes_sender import router as sender_router
 from .routes_rider import router as rider_router
 from .routes_courier import router as courier_router
@@ -190,6 +191,7 @@ def db_info(db: Session = Depends(get_db)):
 
 # --------------------------- Routers ---------------------------
 app.include_router(auth_router)
+app.include_router(account_router)
 app.include_router(users_router)
 app.include_router(sender_router)
 app.include_router(rider_router)

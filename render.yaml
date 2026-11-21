@@ -16,6 +16,13 @@ services:
       # Login token lifetime in minutes (7 days): the app remembers the token on the device
       - key: JWT_TTL_MIN
         value: "10080"
+      # Account emails (verification, password reset) are sent through Resend
+      - key: RESEND_API_KEY
+        sync: false
+      - key: EMAIL_FROM
+        value: BidDrop <onboarding@resend.dev>
+      - key: APP_WEB_URL
+        value: https://biddrop-web.onrender.com
 
   - type: web
     name: biddrop-web

@@ -51,8 +51,10 @@ class Users(Base):
     __tablename__ = "users"
 
     id              = Column(PG_UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    wallet_address  = Column(String, unique=True, nullable=False)
-    email           = Column(String, unique=True)          # nullable
+    wallet_address  = Column(String, unique=True)          # nullable: linked when a payment needs it
+    email           = Column(String, unique=True)          # nullable; the login name of email accounts
+    password_hash   = Column(Text)                         # bcrypt hash, email accounts only
+    email_verified_at = Column(DateTime(timezone=True))
     phone           = Column(String)                       # nullable
     role            = Column(user_role_enum, nullable=False)
     first_name      = Column(String)
@@ -108,6 +110,19 @@ class Users(Base):
 # ------------------------------------------------------------------------------
 # Login nonces
 # ------------------------------------------------------------------------------
+
+class EmailTokens(Base):
+    """One-time links sent by email: address verification and password reset."""
+    __tablename__ = "email_tokens"
+
+    id         = Column(PG_UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    user_id    = Column(PG_UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    purpose    = Column(Text, nullable=False)              # verify | reset
+    token_hash = Column(Text, nullable=False, unique=True)
+    expires_at = Column(DateTime(timezone=True), nullable=False)
+    used_at    = Column(DateTime(timezone=True))
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+
 
 class LoginNonces(Base):
     __tablename__ = "login_nonces"

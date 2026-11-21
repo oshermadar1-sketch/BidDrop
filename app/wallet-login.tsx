@@ -33,7 +33,8 @@ import {
   openSubWalletOrStore,
   bringSubWalletToFront,
 } from "../lib/wc";
-import { getNonce, verifySignature, getMyProfile } from "../lib/api";
+import { getNonce, verifySignature, getMyProfile, linkWallet } from "../lib/api";
+import { useLocalSearchParams } from "expo-router";
 import { saveSession } from "../lib/session";
 
 // WalletConnect pairing proposals are valid for 5 minutes. After that the QR
@@ -98,6 +99,17 @@ async function registerPushToken(jwt: string) {
 
 export default function WalletLogin() {
   const router = useRouter();
+  // mode=link: the user is already logged in (email account) and only attaches a wallet
+  // for payments; afterwards we return to the screen that asked for it.
+  const params = useLocalSearchParams<{
+    mode?: string;
+    token?: string;
+    returnTo?: string;
+    requestId?: string;
+    assignmentId?: string;
+    role?: string;
+  }>();
+  const linkMode = params.mode === "link" && !!params.token;
 
   // --- Core state ---
   const [session, setSession] = useState<WCSessionInfo | null>(null);
@@ -288,8 +300,30 @@ export default function WalletLogin() {
       clearTimeout(t1);
       clearTimeout(t2);
 
-      // Verify on server -> get JWT
       setBusy("verifying");
+
+      if (linkMode) {
+        // Prove the wallet and attach it to the logged-in account, then go back
+        await linkWallet(String(params.token), {
+          address: addressForServer,
+          message: messageToSign,
+          signature,
+        });
+        setBusy("idle");
+        router.replace({
+          pathname: (params.returnTo as any) || "/role_select",
+          params: {
+            token: params.token,
+            ...(params.requestId ? { requestId: params.requestId } : {}),
+            ...(params.assignmentId ? { assignmentId: params.assignmentId } : {}),
+            ...(params.role ? { role: params.role } : {}),
+            walletLinked: "1",
+          },
+        });
+        return;
+      }
+
+      // Verify on server -> get JWT
       const { token } = await verifySignature({
         address: addressForServer,
         message: messageToSign,
@@ -340,7 +374,7 @@ export default function WalletLogin() {
       setErr(e?.message || "Sign/verify failed");
       Alert.alert("Error", String(e?.message || e));
     }
-  }, [session, messageToSign, serverAddress, router]);
+  }, [session, messageToSign, serverAddress, router, linkMode, params]);
 
   return (
     <View style={styles.screen}>
@@ -366,9 +400,13 @@ export default function WalletLogin() {
         <View className="card" style={styles.card}>
           {!session ? (
             <>
-              <Text style={styles.cardTitle}>התחברות עם SubWallet</Text>
+              <Text style={styles.cardTitle}>
+                {linkMode ? "קישור ארנק לתשלום" : "התחברות עם SubWallet"}
+              </Text>
               <Text style={styles.cardSub}>
-                התחבר/י לארנק כדי להמשיך. לאחר האישור ניצור עבורך נונס לחתימה.
+                {linkMode
+                  ? "כדי לשלם צריך לקשר ארנק SubWallet לחשבון, פעם אחת בלבד. החתימה מוכיחה שהארנק שלך."
+                  : "התחבר/י לארנק כדי להמשיך. לאחר האישור ניצור עבורך נונס לחתימה."}
               </Text>
 
               <TouchableOpacity

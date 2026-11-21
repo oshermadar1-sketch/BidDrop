@@ -54,6 +54,8 @@ export default function ProfileSetup() {
             !!me?.city);
         if (mounted && completed) {
           router.replace({ pathname: "/role_select", params: { token } });
+        } else if (mounted && me?.email) {
+          setEmail(me.email);
         }
       } catch {
         // ignore; allow the user to proceed with the form

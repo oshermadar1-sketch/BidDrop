@@ -53,6 +53,10 @@ ESCROW_WAIT_FINALIZATION = os.getenv("ESCROW_WAIT_FINALIZATION", "0").lower() in
 # Optional fallback account when user has no wallet_address configured.
 ESCROW_FALLBACK_ACCOUNT = os.getenv("ESCROW_FALLBACK_ACCOUNT", "")
 
+# Demo mode: record the escrow in the database only, without the blockchain call
+# (used when no Substrate node is running). Was referenced below but never defined.
+DEMO_MODE = os.getenv("ESCROW_DEMO_MODE", "0").lower() in ("1", "true", "yes")
+
 
 def _uuid16_from_any(val: Any) -> bytes:
     """
@@ -109,7 +113,7 @@ def _get_wallet_address_for_user(db: Session, user_id: Any) -> str:
         return ESCROW_FALLBACK_ACCOUNT
 
     raise HTTPException(
-        status_code=500,
+        status_code=400,
         detail="User has no wallet_address configured and ESCROW_FALLBACK_ACCOUNT is not set",
     )
 

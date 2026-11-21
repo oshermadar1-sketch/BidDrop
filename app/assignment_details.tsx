@@ -26,6 +26,7 @@ import {
   getAssignmentByRequest,
   getAssignmentById, // ← prefer fetching by assignment id when available
   initiateEscrow, // ← new: create escrow on pay click
+  getMyProfile, // wallet check before the first payment
   rateDriver,
   type RequestRow,
   type RiderRequestRow,
@@ -334,6 +335,25 @@ export default function AssignmentDetails() {
 
     try {
       setPaying(true);
+
+      // Payments go through the wallet; an email account links one the first time
+      const me = await getMyProfile(String(token)).catch(() => null);
+      if (me && !me.wallet_address) {
+        setPaying(false);
+        router.push({
+          pathname: "/wallet-login",
+          params: {
+            mode: "link",
+            token: String(token),
+            returnTo: "/assignment_details",
+            requestId: String(requestId ?? ""),
+            assignmentId: assignment.assignment_id,
+            role: String(role ?? ""),
+          },
+        });
+        return;
+      }
+
       // Call backend: create DB escrow + on-chain escrow entry
       const escrow = await initiateEscrow(
         String(token),

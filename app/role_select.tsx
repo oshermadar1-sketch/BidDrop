@@ -22,6 +22,7 @@ import {
   BASE_URL,
   updateUserRole,
   getMyProfile,
+  resendVerification,
   getCourierProfile,
   type BackendRole,
 } from "../lib/api";
@@ -42,6 +43,9 @@ export default function RoleSelectScreen() {
   const router = useRouter();
   const { token } = useLocalSearchParams<{ token?: string }>();
   const [name, setName] = useState<string>("");
+  // Email accounts only: shown until the emailed link was opened
+  const [needsVerify, setNeedsVerify] = useState(false);
+  const [resent, setResent] = useState(false);
 
   // למנוע רישום כפול אם המסך נטען שוב
   const didRegisterRef = useRef(false);
@@ -60,6 +64,7 @@ useEffect(() => {
         `${user.first_name || ""} ${user.last_name || ""}`.trim();
 
       setName(displayName);
+      setNeedsVerify(!!user.has_password && !!user.email && !user.email_verified_at);
     } catch (e) {
       console.log("Failed loading user name", e);
     }
@@ -159,6 +164,36 @@ useEffect(() => {
             אפשר לשנות בכל רגע מהפרופיל. הבחירה תתאים את דף הבית והתפריטים.
           </Text>
 
+          {needsVerify && (
+            <View
+              style={{
+                backgroundColor: "#fffbeb",
+                borderColor: "#fde68a",
+                borderWidth: 1,
+                borderRadius: 12,
+                padding: 10,
+                marginBottom: 12,
+              }}
+            >
+              <Text style={{ color: "#92400e", fontSize: 13, textAlign: "right" }}>
+                כתובת האימייל עדיין לא אומתה. פתח/י את הקישור ששלחנו.
+              </Text>
+              <TouchableOpacity
+                onPress={async () => {
+                  try {
+                    await resendVerification(String(token));
+                    setResent(true);
+                  } catch {}
+                }}
+                style={{ marginTop: 6, alignSelf: "flex-end" }}
+              >
+                <Text style={{ color: "#92400e", textDecorationLine: "underline", fontSize: 13 }}>
+                  {resent ? "נשלח שוב ✓" : "שליחת קישור חדש"}
+                </Text>
+              </TouchableOpacity>
+            </View>
+          )}
+
           <RoleItem
             emoji="📦"
             title="שולח/ת חבילה"
@@ -208,7 +243,7 @@ useEffect(() => {
             accessibilityLabel="התנתקות"
           >
             <Text style={{ color: "#6b7280", textDecorationLine: "underline" }}>
-              התנתק/י או החלף/י ארנק
+              התנתקות
             </Text>
           </TouchableOpacity>
         </View>

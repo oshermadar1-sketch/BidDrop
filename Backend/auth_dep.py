@@ -8,6 +8,7 @@ from datetime import datetime, timezone
 from sqlalchemy.orm import Session
 from sqlalchemy import text
 import os
+import uuid
 
 from .Database.db import get_db
 
@@ -28,7 +29,8 @@ def get_current_user(
     except JWTError:
         raise HTTPException(status_code=401, detail="Invalid token")
 
-    # In our JWT, 'sub' stores the canonical wallet address
+    # 'sub' is the user id for email accounts (routes_account.py) and the canonical
+    # wallet address for wallet logins (routes_auth.py).
     sub = payload.get("sub")
     if not sub:
         raise HTTPException(status_code=401, detail="Invalid token payload (no sub)")
@@ -38,8 +40,14 @@ def get_current_user(
     if exp and datetime.now(timezone.utc).timestamp() > float(exp):
         raise HTTPException(status_code=401, detail="Token expired")
 
-    # Load the user by wallet_address and return all relevant fields.
-    row = db.execute(text("""
+    # Load the user by id or by wallet_address and return all relevant fields.
+    try:
+        uuid.UUID(str(sub))
+        where, params = "id = :uid", {"uid": str(sub)}
+    except ValueError:
+        where, params = "wallet_address = :wa", {"wa": sub}
+
+    row = db.execute(text(f"""
         SELECT
             id,
             wallet_address,
@@ -51,11 +59,13 @@ def get_current_user(
             last_name,
             rating,
             first_login_completed,
+            email_verified_at,
+            (password_hash IS NOT NULL) AS has_password,
             created_at,
             updated_at
         FROM users
-        WHERE wallet_address = :wa
-    """), {"wa": sub}).mappings().first()
+        WHERE {where}
+    """), params).mappings().first()
 
     if not row:
         raise HTTPException(status_code=401, detail="User not found")

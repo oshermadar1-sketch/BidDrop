@@ -19,6 +19,21 @@ UPGRADES = [
     "ALTER TABLE assignments ADD COLUMN IF NOT EXISTS route_distance_km NUMERIC",
     "ALTER TABLE assignments ADD COLUMN IF NOT EXISTS route_duration_min NUMERIC",
     "ALTER TABLE assignments ADD COLUMN IF NOT EXISTS estimated_arrival_at TIMESTAMPTZ",
+    # Email + password accounts (routes_account.py): the wallet becomes optional and is
+    # linked later, when a payment needs it
+    "ALTER TABLE users ALTER COLUMN wallet_address DROP NOT NULL",
+    "ALTER TABLE users ADD COLUMN IF NOT EXISTS password_hash TEXT",
+    "ALTER TABLE users ADD COLUMN IF NOT EXISTS email_verified_at TIMESTAMPTZ",
+    "CREATE UNIQUE INDEX IF NOT EXISTS users_email_lower_idx ON users (lower(email))",
+    """CREATE TABLE IF NOT EXISTS email_tokens (
+        id UUID PRIMARY KEY,
+        user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+        purpose TEXT NOT NULL,
+        token_hash TEXT NOT NULL UNIQUE,
+        expires_at TIMESTAMPTZ NOT NULL,
+        used_at TIMESTAMPTZ,
+        created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    )""",
 ]
 
 

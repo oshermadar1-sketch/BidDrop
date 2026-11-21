@@ -43,7 +43,8 @@ export interface VerifyResponse {
 /** Server 'users' row. */
 export interface UserRow {
   id: string;
-  wallet_address: string;
+  /** Linked wallet, or null until a payment needs one (POST /auth/link-wallet). */
+  wallet_address: string | null;
   role: string;
   email: string | null;
   phone: string | null;
@@ -52,6 +53,9 @@ export interface UserRow {
   last_name: string | null;
   rating: number | null;
   first_login_completed: boolean;
+  /** Email accounts: when the address was confirmed through the emailed link. */
+  email_verified_at?: string | null;
+  has_password?: boolean;
   created_at: string;
   updated_at: string;
   /** Drivers only: trust score 1..5 and how it was computed (see Backend/trust_score.py). */
@@ -200,6 +204,78 @@ export async function verifySignature(params: {
     token_type: data.token_type,
     user: data.user,
   };
+}
+
+// ---------------------------- Email accounts ------------------------------
+
+export interface EmailAuthResponse {
+  user: UserRow;
+  access_token: string;
+  token_type: string;
+  verification_sent?: boolean;
+}
+
+export async function registerWithEmail(email: string, password: string): Promise<EmailAuthResponse> {
+  return jsonFetch(`${BASE_URL}/auth/register`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ email, password }),
+  });
+}
+
+export async function loginWithEmail(email: string, password: string): Promise<EmailAuthResponse> {
+  return jsonFetch(`${BASE_URL}/auth/login`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ email, password }),
+  });
+}
+
+export async function verifyEmail(token: string): Promise<{ ok: boolean }> {
+  return jsonFetch(`${BASE_URL}/auth/verify-email`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ token }),
+  });
+}
+
+export async function resendVerification(token: string): Promise<{ ok: boolean; sent?: boolean }> {
+  return jsonFetch(`${BASE_URL}/auth/resend-verification`, {
+    method: "POST",
+    headers: { ...authHeaders(token) },
+  });
+}
+
+export async function forgotPassword(email: string): Promise<{ ok: boolean }> {
+  return jsonFetch(`${BASE_URL}/auth/forgot-password`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ email }),
+  });
+}
+
+export async function resetPassword(token: string, password: string): Promise<{ ok: boolean }> {
+  return jsonFetch(`${BASE_URL}/auth/reset-password`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ token, password }),
+  });
+}
+
+/** Attach a wallet to the logged-in account; the signature comes from the same nonce flow as the wallet login. */
+export async function linkWallet(
+  token: string,
+  params: { address: string; message: string; signature: string }
+): Promise<{ user: UserRow }> {
+  return jsonFetch(`${BASE_URL}/auth/link-wallet`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...authHeaders(token) },
+    body: JSON.stringify({
+      wallet_address: params.address,
+      signed_message: params.message,
+      signature: params.signature,
+    }),
+  });
 }
 
 // --------------------------------- Users -----------------------------------

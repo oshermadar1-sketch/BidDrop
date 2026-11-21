@@ -68,7 +68,7 @@ def update_me(
       - We also set 'first_login_completed = TRUE' when an update occurs.
       - 'updated_at' is set to NOW().
     """
-    wallet_address = me["wallet_address"]
+    user_id = str(me["id"])
 
     # Sanitize/trim incoming fields
     first_name = (payload.get("first_name") or "").strip()
@@ -83,17 +83,17 @@ def update_me(
             text("""
                 SELECT 1
                 FROM users
-                WHERE email = :email AND wallet_address <> :wa
+                WHERE lower(email) = lower(:email) AND id <> :uid
                 LIMIT 1
             """),
-            {"email": email, "wa": wallet_address},
+            {"email": email, "uid": user_id},
         ).first()
         if exists:
             raise HTTPException(status_code=409, detail="Email already in use")
 
     # Build dynamic UPDATE for provided fields only
     set_parts = []
-    params = {"wa": wallet_address}
+    params = {"uid": user_id}
 
     if email:
         set_parts.append("email = :email")
@@ -120,12 +120,12 @@ def update_me(
 
     set_sql = ", ".join(set_parts + ["updated_at = NOW()"])
 
-    # Try updating an existing row (identified by wallet_address)
+    # Update the existing row (identified by the user id from the token)
     row = db.execute(
         text(f"""
             UPDATE users
             SET {set_sql}
-            WHERE wallet_address = :wa
+            WHERE id = :uid
             RETURNING
                 id,
                 wallet_address,
@@ -176,7 +176,7 @@ def update_me(
                     updated_at
             """),
             {
-                "wa": wallet_address,
+                "wa": me.get("wallet_address"),
                 "email": email or None,
                 "phone": phone or None,
                 "city": city or None,
@@ -206,7 +206,7 @@ def update_my_role(
           * 'sender'   -> 'sender'
           * 'rider'    -> 'sender'
     """
-    wallet_address = me["wallet_address"]
+    user_id = str(me["id"])
     new_role = (payload.get("role") or "").strip()
 
     if new_role not in ("sender", "driver", "admin"):
@@ -217,7 +217,7 @@ def update_my_role(
             """
             UPDATE users
             SET role = :role, updated_at = NOW()
-            WHERE wallet_address = :wa
+            WHERE id = :uid
             RETURNING
                 id,
                 wallet_address,
@@ -233,7 +233,7 @@ def update_my_role(
                 updated_at
             """
         ),
-        {"role": new_role, "wa": wallet_address},
+        {"role": new_role, "uid": user_id},
     ).mappings().first()
 
     if not row:
@@ -356,8 +356,8 @@ def validate_courier_profile(payload: dict) -> dict:
 @router.get("/me/courier-profile")
 def get_my_courier_profile(db: Session = Depends(get_db), me = Depends(get_current_user)):
     row = db.execute(
-        text("SELECT age, vehicle_type, vehicle_condition FROM users WHERE wallet_address = :wa"),
-        {"wa": me["wallet_address"]},
+        text("SELECT age, vehicle_type, vehicle_condition FROM users WHERE id = :uid"),
+        {"uid": str(me["id"])},
     ).mappings().first()
     data = dict(row) if row else {"age": None, "vehicle_type": None, "vehicle_condition": None}
     data["completed"] = data["vehicle_type"] is not None
@@ -376,10 +376,10 @@ def update_my_courier_profile(
             UPDATE users
             SET age = :age, vehicle_type = :vehicle_type,
                 vehicle_condition = :vehicle_condition, updated_at = NOW()
-            WHERE wallet_address = :wa
+            WHERE id = :uid
             RETURNING age, vehicle_type, vehicle_condition
         """),
-        {**data, "wa": me["wallet_address"]},
+        {**data, "uid": str(me["id"])},
     ).mappings().first()
     if not row:
         raise HTTPException(status_code=404, detail="User not found")

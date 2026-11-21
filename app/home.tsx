@@ -1,35 +1,37 @@
+// app/home.tsx
+// Login screen: email + password. SubWallet is no longer needed to sign in; it is
+// linked later, the first time a payment needs it. The wallet login stays available
+// for accounts that were created with a wallet.
 import React, { useEffect, useState } from "react";
 import {
   SafeAreaView,
   View,
   Text,
+  TextInput,
   TouchableOpacity,
-  StyleSheet,
-  Modal,
-  Pressable,
-  Linking,
-  I18nManager,
+  ScrollView,
+  KeyboardAvoidingView,
   Platform,
+  I18nManager,
 } from "react-native";
 import { useRouter } from "expo-router";
 import AnimatedBgBlobs from "./components/AnimatedBgBlobs";
+import PasswordField from "./components/PasswordField";
+import { authStyles as S, AUTH_COLORS } from "./ui/authStyles";
+import { loginWithEmail } from "../lib/api";
 import { loadSession } from "../lib/session";
+import { routeAfterLogin } from "../lib/afterLogin";
+import { emailLooksValid } from "../lib/password";
 
 I18nManager.allowRTL(true);
 
-const COLORS = {
-  bg: "#ffffff",
-  primary: "#475530",
-  primarySoft: "#9bac70",
-  text: "#060606",
-  textDim: "#6b7280",
-  border: "#e5e7eb",
-};
-
 export default function HomeScreen() {
   const router = useRouter();
-  const [helpVisible, setHelpVisible] = useState(false);
   const [checkingSession, setCheckingSession] = useState(true);
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [err, setErr] = useState<string | null>(null);
 
   // A remembered, still-valid login goes straight to the role screen.
   useEffect(() => {
@@ -51,207 +53,97 @@ export default function HomeScreen() {
     };
   }, [router]);
 
+  const canSubmit = emailLooksValid(email) && password.length > 0 && !busy && !checkingSession;
+
+  const handleLogin = async () => {
+    if (!canSubmit) return;
+    setErr(null);
+    setBusy(true);
+    try {
+      const { access_token } = await loginWithEmail(email.trim(), password);
+      await routeAfterLogin(router, String(access_token));
+    } catch (e: any) {
+      setErr(e?.message || "ההתחברות נכשלה");
+      setBusy(false);
+    }
+  };
+
   return (
-    <SafeAreaView style={styles.safe}>
-      {/* Dynamic background */}
+    <SafeAreaView style={S.screen}>
       <AnimatedBgBlobs />
-
-      {/* Centered content wrapper */}
-      <View style={styles.centerWrap}>
-        <Text style={styles.title}>ברוכ/ה הבא/ה ל-BidDrop</Text>
-        <Text style={styles.subtitle}>
-          כדי להמשיך נדרש זיהוי מאובטח באמצעות ארנק SubWallet.
-        </Text>
-
-        <TouchableOpacity
-          style={[styles.buttonPrimary, { marginTop: 10 }, checkingSession && { opacity: 0.6 }]}
-          onPress={() => router.push("/wallet-login")}
-          disabled={checkingSession}
-          accessibilityRole="button"
-          accessibilityLabel="התחברות או הרשמה עם SubWallet"
-          testID="btn-connect-subwallet"
-        >
-          <Text
-            style={styles.buttonPrimaryText}
-            numberOfLines={1} // keep on a single line
-            adjustsFontSizeToFit // auto-shrink to fit width
-            minimumFontScale={0.9} // do not shrink below 90%
-            allowFontScaling // respect OS accessibility
-            maxFontSizeMultiplier={1.2} // cap extreme system font sizes
-          >
-            התחברות / הרשמה עם SubWallet
-          </Text>
-        </TouchableOpacity>
-
-        {/* Help trigger */}
-        <Pressable
-          onPress={() => setHelpVisible(true)}
-          style={{ marginTop: 18 }}
-        >
-          <Text style={styles.helpText}>אין לך ארנק? צריך/ה עזרה בהתחברות</Text>
-        </Pressable>
-      </View>
-
-      {/* Help modal */}
-      <Modal
-        visible={helpVisible}
-        transparent
-        animationType="fade"
-        onRequestClose={() => setHelpVisible(false)}
+      <KeyboardAvoidingView
+        style={{ flex: 1 }}
+        behavior={Platform.OS === "ios" ? "padding" : undefined}
       >
-        <View style={styles.modalBackdrop}>
-          <View style={styles.modalCard}>
-            <Text style={styles.modalTitle}>איך מתחברים עם SubWallet?</Text>
-            <Text style={styles.modalBody}>
-              התקן/י את SubWallet. במסך הבא נפתח את הארנק; אם לא — תוכל/י לסרוק
-              QR.
+        <ScrollView contentContainerStyle={S.scroll} keyboardShouldPersistTaps="handled">
+          <View style={S.card}>
+            <Text style={S.title}>ברוכ/ה הבא/ה ל-BidDrop</Text>
+            <Text style={S.subtitle}>
+              התחבר/י עם אימייל וסיסמה. ארנק SubWallet נדרש רק בשלב התשלום.
             </Text>
 
-            <View style={styles.linkList}>
-              <Pressable
-                onPress={() => Linking.openURL("https://www.subwallet.app")}
-              >
-                <Text style={styles.modalLink}>הורדת SubWallet</Text>
-              </Pressable>
-              <Pressable
-                onPress={() => Linking.openURL("https://support.subwallet.app")}
-              >
-                <Text style={styles.modalLink}>מדריכים ותמיכה – SubWallet</Text>
-              </Pressable>
-              <Text style={styles.noteText}>
-                {Platform.OS === "web"
-                  ? "טיפ: אם התוסף לא מזוהה, רענן/י את הדף לאחר ההתקנה."
-                  : "טיפ: במובייל נפתח את SubWallet; אם לא — סרוק/י QR."}
-              </Text>
+            <View style={S.field}>
+              <Text style={S.label}>אימייל</Text>
+              <TextInput
+                style={S.input}
+                value={email}
+                onChangeText={setEmail}
+                keyboardType="email-address"
+                autoCapitalize="none"
+                autoCorrect={false}
+                placeholder="name@example.com"
+                placeholderTextColor={AUTH_COLORS.dim}
+                testID="login-email"
+              />
+            </View>
+
+            <PasswordField label="סיסמה" value={password} onChangeText={setPassword} />
+
+            <TouchableOpacity
+              style={[S.btnPrimary, !canSubmit && S.disabled]}
+              onPress={handleLogin}
+              disabled={!canSubmit}
+              accessibilityRole="button"
+              testID="login-submit"
+            >
+              <Text style={S.btnPrimaryText}>{busy ? "מתחבר/ת…" : "התחברות"}</Text>
+            </TouchableOpacity>
+
+            {!!err && (
+              <View style={S.errBox}>
+                <Text style={S.errText}>{err}</Text>
+              </View>
+            )}
+
+            <View style={S.linksRow}>
+              <TouchableOpacity onPress={() => router.push("/signup")}>
+                <Text style={S.link}>אין לך חשבון? הרשמה</Text>
+              </TouchableOpacity>
+              <TouchableOpacity onPress={() => router.push("/forgot-password")}>
+                <Text style={S.link}>שכחת סיסמה?</Text>
+              </TouchableOpacity>
+            </View>
+
+            <View style={S.dividerRow}>
+              <View style={S.dividerLine} />
+              <Text style={S.dividerText}>או</Text>
+              <View style={S.dividerLine} />
             </View>
 
             <TouchableOpacity
-              style={styles.buttonSecondary}
-              onPress={() => setHelpVisible(false)}
+              style={[S.btnOutline, checkingSession && S.disabled]}
+              onPress={() => router.push("/wallet-login")}
+              disabled={checkingSession}
+              accessibilityRole="button"
+              accessibilityLabel="התחברות עם SubWallet"
+              testID="btn-connect-subwallet"
             >
-              <Text style={styles.buttonSecondaryText}>סגירה</Text>
+              <Text style={S.btnOutlineText}>התחברות עם ארנק SubWallet</Text>
             </TouchableOpacity>
+            <Text style={S.note}>לחשבונות שנפתחו עם ארנק.</Text>
           </View>
-        </View>
-      </Modal>
+        </ScrollView>
+      </KeyboardAvoidingView>
     </SafeAreaView>
   );
 }
-
-const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: COLORS.bg },
-
-  // Fully centered content (no dead space below)
-  centerWrap: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    paddingHorizontal: 22,
-  },
-
-  title: {
-    fontSize: 26,
-    fontWeight: "800",
-    color: COLORS.text,
-    textAlign: "center",
-    writingDirection: "rtl",
-  },
-  subtitle: {
-    fontSize: 14,
-    color: COLORS.textDim,
-    textAlign: "center",
-    marginTop: 8,
-    marginBottom: 18,
-    lineHeight: 20,
-    writingDirection: "rtl",
-  },
-
-  buttonPrimary: {
-    backgroundColor: COLORS.primarySoft,
-    paddingVertical: 14,
-    paddingHorizontal: 28,
-    borderRadius: 16,
-    width: "90%",
-    alignItems: "center",
-    shadowColor: "#000",
-    shadowOpacity: 0.08,
-    shadowRadius: 6,
-    shadowOffset: { width: 0, height: 3 },
-    elevation: 2,
-  },
-  buttonPrimaryText: {
-    color: "#fff",
-    fontSize: 16,
-    fontWeight: "700",
-    textAlign: "center",
-    writingDirection: "rtl",
-    includeFontPadding: false, // Android: avoids extra top/bottom space
-    textAlignVertical: "center",
-  },
-
-  // Small help link below the button
-  helpText: {
-    color: COLORS.primary,
-    fontSize: 13,
-    textDecorationLine: "underline",
-  },
-
-  // modal
-  modalBackdrop: {
-    flex: 1,
-    backgroundColor: "rgba(0,0,0,0.35)",
-    alignItems: "center",
-    justifyContent: "center",
-    padding: 18,
-  },
-  modalCard: {
-    width: "100%",
-    backgroundColor: "#fff",
-    borderRadius: 16,
-    padding: 18,
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: COLORS.border,
-  },
-  modalTitle: {
-    fontSize: 18,
-    fontWeight: "800",
-    color: COLORS.text,
-    marginBottom: 8,
-    textAlign: "center",
-  },
-  modalBody: {
-    fontSize: 14,
-    color: COLORS.textDim,
-    lineHeight: 20,
-    textAlign: "center",
-    writingDirection: "rtl",
-  },
-  linkList: { marginTop: 12, gap: 8 },
-  modalLink: {
-    fontSize: 15,
-    color: COLORS.primary,
-    textDecorationLine: "underline",
-    marginVertical: 4,
-    textAlign: "center",
-  },
-  noteText: {
-    marginTop: 8,
-    fontSize: 12,
-    color: COLORS.textDim,
-    textAlign: "center",
-  },
-  buttonSecondary: {
-    marginTop: 16,
-    backgroundColor: "#fff",
-    borderWidth: 2,
-    borderColor: COLORS.primary,
-    borderRadius: 12,
-    paddingVertical: 12,
-    alignItems: "center",
-  },
-  buttonSecondaryText: {
-    color: COLORS.primary,
-    fontSize: 15,
-    fontWeight: "700",
-  },
-});
