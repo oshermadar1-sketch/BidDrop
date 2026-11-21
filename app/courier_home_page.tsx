@@ -20,6 +20,7 @@ import {
   listMyCourierOffers,
   type CourierMetrics,
 } from "../lib/api";
+import { TrustStars, TrustExplain, type TrustDetails } from "../components/TrustStars";
 
 const GREEN_1 = "#DDECCB";
 const GREEN_2 = "#CBE1B4";
@@ -35,6 +36,7 @@ export default function CourierHome() {
 
   const [firstName, setFirstName] = useState("");
   const [metrics, setMetrics] = useState<CourierMetrics | null>(null);
+  const [trust, setTrust] = useState<TrustDetails | null>(null);
   const [activeOffers, setActiveOffers] = useState<number>(0);
   const [refreshing, setRefreshing] = useState(false);
 
@@ -49,6 +51,7 @@ export default function CourierHome() {
     }).catch(() => []);
     const [me, m, offers] = await Promise.all([meP, mP, offersP]);
     setFirstName(me?.first_name || "");
+    setTrust(me?.trust ?? null);
     setMetrics(m ?? null);
     setActiveOffers(offers.length);
   }, [token]);
@@ -118,6 +121,26 @@ export default function CourierHome() {
             <Text style={S.titleLine2}>
               להזדמנות משתלמת<Text style={S.spark}>✨</Text>
             </Text>
+          </View>
+
+          {/* The courier's own trust score, the same one senders see */}
+          <View style={S.trustCard}>
+            <View style={S.trustHead}>
+              <Ionicons name="star" size={18} color={TXT} />
+              <Text style={S.cardTitle}>הדירוג שלך</Text>
+            </View>
+            <TrustStars
+              score={trust?.trust_score}
+              isNew={trust?.is_new_courier}
+              numRatings={trust?.num_ratings}
+              size={22}
+            />
+            <Text style={S.trustSub}>
+              {trust?.trust_score == null
+                ? "הדירוג יופיע אחרי השלמת הפרופיל"
+                : "זה הציון שרואים מי ששולחים משלוח לפני שהם בוחרים בך"}
+            </Text>
+            {trust ? <TrustExplain d={trust} /> : null}
           </View>
 
           <View style={S.cardsRow}>
@@ -292,6 +315,19 @@ const S = StyleSheet.create({
     minHeight: 32,
   },
   cardCount: { color: TXT, fontSize: 28, fontWeight: "900", marginTop: 6 },
+
+  trustCard: {
+    backgroundColor: CARD_BG,
+    borderRadius: 16,
+    padding: 12,
+    marginBottom: 12,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: CARD_BORDER,
+    alignItems: "flex-end",
+    gap: 6,
+  },
+  trustHead: { flexDirection: "row", alignItems: "center", gap: 8 },
+  trustSub: { color: TXT, opacity: 0.85, fontSize: 12, textAlign: "right" },
 
   switchBtn: {
     flexDirection: "row",

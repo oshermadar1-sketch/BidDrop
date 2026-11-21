@@ -54,6 +54,18 @@ export interface UserRow {
   first_login_completed: boolean;
   created_at: string;
   updated_at: string;
+  /** Drivers only: trust score 1..5 and how it was computed (see Backend/trust_score.py). */
+  trust_score?: number | null;
+  trust?: {
+    trust_score?: number | null;
+    customer_part?: number | null;
+    model_part?: number | null;
+    customer_weight?: number | null;
+    model_weight?: number | null;
+    num_ratings?: number | null;
+    num_timed_deliveries?: number | null;
+    is_new_courier?: boolean | null;
+  } | null;
 }
 
 export interface ProfileInput {
