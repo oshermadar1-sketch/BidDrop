@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   SafeAreaView,
   View,
@@ -13,6 +13,7 @@ import {
 } from "react-native";
 import { useRouter } from "expo-router";
 import AnimatedBgBlobs from "./components/AnimatedBgBlobs";
+import { loadSession } from "../lib/session";
 
 I18nManager.allowRTL(true);
 
@@ -28,6 +29,27 @@ const COLORS = {
 export default function HomeScreen() {
   const router = useRouter();
   const [helpVisible, setHelpVisible] = useState(false);
+  const [checkingSession, setCheckingSession] = useState(true);
+
+  // A remembered, still-valid login goes straight to the role screen.
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const token = await loadSession();
+        if (token && !cancelled) {
+          router.replace({ pathname: "/role_select", params: { token } });
+          return;
+        }
+      } catch {
+        // fall through to the normal login screen
+      }
+      if (!cancelled) setCheckingSession(false);
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [router]);
 
   return (
     <SafeAreaView style={styles.safe}>
@@ -42,8 +64,9 @@ export default function HomeScreen() {
         </Text>
 
         <TouchableOpacity
-          style={[styles.buttonPrimary, { marginTop: 10 }]}
+          style={[styles.buttonPrimary, { marginTop: 10 }, checkingSession && { opacity: 0.6 }]}
           onPress={() => router.push("/wallet-login")}
+          disabled={checkingSession}
           accessibilityRole="button"
           accessibilityLabel="התחברות או הרשמה עם SubWallet"
           testID="btn-connect-subwallet"

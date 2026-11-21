@@ -17,6 +17,7 @@ import { useRouter, useLocalSearchParams } from "expo-router";
 import AnimatedBgBlobs from "./components/AnimatedBgBlobs";
 
 import { registerAndSyncPushToken, getPushDebugReport } from "../lib/push";
+import { clearSession } from "../lib/session";
 import {
   BASE_URL,
   updateUserRole,
@@ -194,6 +195,21 @@ useEffect(() => {
             }}
           >
             <Text style={{ color: COLORS.text }}>בדיקת פוש (מציג דו״ח)</Text>
+          </TouchableOpacity>
+
+          {/* Forget the remembered login and return to the wallet screen */}
+          <TouchableOpacity
+            onPress={async () => {
+              await clearSession().catch(() => {});
+              router.replace("/home");
+            }}
+            style={{ marginTop: 10, alignSelf: "center", paddingVertical: 8 }}
+            accessibilityRole="button"
+            accessibilityLabel="התנתקות"
+          >
+            <Text style={{ color: "#6b7280", textDecorationLine: "underline" }}>
+              התנתק/י או החלף/י ארנק
+            </Text>
           </TouchableOpacity>
         </View>
       </View>

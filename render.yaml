@@ -13,6 +13,9 @@ services:
         value: https://biddrop-web.onrender.com,http://localhost:8081,http://127.0.0.1:8081
       - key: JWT_SECRET
         generateValue: true
+      # Login token lifetime in minutes (7 days): the app remembers the token on the device
+      - key: JWT_TTL_MIN
+        value: "10080"
 
   - type: web
     name: biddrop-web

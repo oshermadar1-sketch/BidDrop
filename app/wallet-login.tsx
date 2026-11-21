@@ -34,6 +34,7 @@ import {
   bringSubWalletToFront,
 } from "../lib/wc";
 import { getNonce, verifySignature, getMyProfile } from "../lib/api";
+import { saveSession } from "../lib/session";
 
 // WalletConnect pairing proposals are valid for 5 minutes. After that the QR
 // is useless and the user has to start a new pairing.
@@ -296,6 +297,9 @@ export default function WalletLogin() {
       });
 
       const tokenStr = String(token);
+
+      // Remember the login on this device (see lib/session.ts)
+      await saveSession(tokenStr).catch(() => {});
 
       // --- Register Expo push token (best-effort) ---
       await registerPushToken(tokenStr).catch(() => {});
