@@ -785,6 +785,11 @@ export type AssignmentDetailOut = {
 
   /** ML-predicted delivery time for this courier and route (minutes). */
   predicted_minutes?: number | null;
+  /** Road distance and driving time of the pickup -> drop-off leg (OpenStreetMap routing). */
+  route_distance_km?: number | null;
+  route_duration_min?: number | null;
+  /** Estimated arrival at the drop-off, derived from the driving time (ISO datetime). */
+  estimated_arrival_at?: string | null;
   /** Score the customer gave the driver for this assignment (null = not rated yet). */
   driver_rating_score?: number | null;
 };

@@ -15,6 +15,10 @@ UPGRADES = [
     # Push de-duplication timestamps, read by routes_auction.py and written by routes_offers.py
     "ALTER TABLE requests ADD COLUMN IF NOT EXISTS push_defer_until TIMESTAMPTZ",
     "ALTER TABLE courier_offers ADD COLUMN IF NOT EXISTS push_defer_until TIMESTAMPTZ",
+    # Route-based estimate for an assignment (services/route_estimates.py)
+    "ALTER TABLE assignments ADD COLUMN IF NOT EXISTS route_distance_km NUMERIC",
+    "ALTER TABLE assignments ADD COLUMN IF NOT EXISTS route_duration_min NUMERIC",
+    "ALTER TABLE assignments ADD COLUMN IF NOT EXISTS estimated_arrival_at TIMESTAMPTZ",
 ]
 
 

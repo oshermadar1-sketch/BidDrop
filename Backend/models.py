@@ -279,6 +279,12 @@ class Assignments(Base):
     completed_at   = Column(DateTime(timezone=True))
     failed_at      = Column(DateTime(timezone=True))
     cancelled_at   = Column(DateTime(timezone=True))
+
+    # Route-based estimate (road distance and driving time pickup -> drop-off, and the
+    # arrival time derived from it). Filled by services/route_estimates.py.
+    route_distance_km    = Column(Numeric)
+    route_duration_min   = Column(Numeric)
+    estimated_arrival_at = Column(DateTime(timezone=True))
     cancel_reason  = Column(Text)
 
     created_at     = Column(DateTime(timezone=True), nullable=False, server_default=func.now())

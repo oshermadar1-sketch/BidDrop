@@ -27,6 +27,7 @@ from decimal import Decimal
 
 from .Database.db import get_db
 from .auth_dep import get_current_user
+from .services.route_estimates import stamp_assignment_estimate
 
 router = APIRouter(prefix="/courier", tags=["courier"])
 
@@ -275,6 +276,7 @@ def courier_accept_job(
         RETURNING id
     """)
     arow = db.execute(ins, {"rid": job_id, "uid": me["id"]}).mappings().first()
+    stamp_assignment_estimate(db, job_id)
 
     upd = text("""
         UPDATE requests

@@ -14,6 +14,7 @@ from sqlalchemy.orm import Session
 from .Database.db import get_db
 from .models import Assignment, User, Request, Escrow, Rating, CourierOffer
 from .services.courier_trust import get_courier_trust, predicted_minutes_for_offer
+from .services.route_estimates import leg_for_coords
 # Optional live locations model
 try:
     from .models import CourierLocation
@@ -95,6 +96,11 @@ class AssignmentDetailOut(BaseModel):
 
     # ML-predicted delivery time for this courier and route (minutes)
     predicted_minutes: Optional[float] = None
+    # Route-based estimate: road distance and driving time of the pickup -> drop-off leg,
+    # and the arrival time derived from it (OpenStreetMap routing)
+    route_distance_km: Optional[float] = None
+    route_duration_min: Optional[float] = None
+    estimated_arrival_at: Optional[datetime] = None
     # Score the customer gave the driver for this assignment (None = not rated yet)
     driver_rating_score: Optional[int] = None
 
@@ -285,6 +291,9 @@ def _pack_assignment_detail(db: Session, assignment: Assignment) -> AssignmentDe
         payment_status=ps_str,
         agreed_price_cents=price_cents,
         assigned_at=assigned_at,
+        route_distance_km=float(assignment.route_distance_km) if getattr(assignment, "route_distance_km", None) is not None else None,
+        route_duration_min=float(assignment.route_duration_min) if getattr(assignment, "route_duration_min", None) is not None else None,
+        estimated_arrival_at=_ensure_tz(getattr(assignment, "estimated_arrival_at", None)),
         picked_up_at=_ensure_tz(getattr(assignment, "picked_up_at", None)),
         in_transit_at=_ensure_tz(getattr(assignment, "in_transit_at", None)),
         completed_at=_ensure_tz(getattr(assignment, "completed_at", None)),
@@ -403,6 +412,19 @@ def update_assignment_status(
         assignment.cancelled_at = now
 
     assignment.status = new_status
+
+    # Recount the route-based arrival from the moment the courier departs.
+    if new_status in ("picked_up", "in_transit"):
+        try:
+            req_row = db.query(Request).filter(Request.id == assignment.request_id).first()
+            est = leg_for_coords(getattr(req_row, "from_lat", None), getattr(req_row, "from_lon", None),
+                                 getattr(req_row, "to_lat", None), getattr(req_row, "to_lon", None)) if req_row else None
+            if est is not None:
+                assignment.route_distance_km = round(est.distance_km, 3)
+                assignment.route_duration_min = round(est.duration_min, 1)
+                assignment.estimated_arrival_at = now + timedelta(minutes=est.duration_min)
+        except Exception as e:  # never block a status update on routing
+            logger.warning("Route estimate refresh failed for %s: %s", assignment.id, e)
 
     # --- Escrow side: driver marked completed + 24h auto-release window ---
     if (

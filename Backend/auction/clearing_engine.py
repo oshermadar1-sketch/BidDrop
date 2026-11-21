@@ -1,7 +1,7 @@
 # app/auction/clearing_engine.py
 # IDA* adapter for BidDrop double-auction clearing (bids-aware) with partial matching support.
 from dataclasses import dataclass
-from typing import List, Tuple, Dict, Iterable, Optional
+from typing import List, Tuple, Dict, Iterable, Optional, Callable
 from math import radians, sin, cos, sqrt, atan2, inf
 
 from .ida_star_core import ida_star
@@ -80,14 +80,17 @@ def quantize_state(ds: DriverState) -> tuple:
   )
 
 # ----------------------------- Feasibility -----------------------------
-def feasible(d: DriverState, ask: Ask, now_min: float, avg_kmh: float) -> bool:
+DistFn = Callable[[Point, Point], float]
+
+def feasible(d: DriverState, ask: Ask, now_min: float, avg_kmh: float,
+             dist_fn: DistFn = haversine_km) -> bool:
   """Hard constraints before simulating assign."""
   if d.capacity_left < ask.size:
     return False
   # Optional time-window feasibility (optimistic)
-  pk_dist = haversine_km(d.pos, ask.pickup)
+  pk_dist = dist_fn(d.pos, ask.pickup)
   leg1 = travel_eta_min(pk_dist, avg_kmh)
-  dl_dist = haversine_km(ask.pickup, ask.dropoff)
+  dl_dist = dist_fn(ask.pickup, ask.dropoff)
   leg2 = travel_eta_min(dl_dist, avg_kmh)
   optimistic_arrival = now_min + leg1 + leg2
   if ask.window_end is not None and optimistic_arrival > ask.window_end:
@@ -105,6 +108,7 @@ def lower_bound_remaining(
   rating_max: float = 5.0,
   allow_partial: bool = True,
   unassigned_penalty: float = 0.0,
+  dist_fn: DistFn = haversine_km,
 ) -> float:
   """
   Sum, over unassigned asks, of the BEST-CASE weighted penalty:
@@ -118,8 +122,8 @@ def lower_bound_remaining(
 
     best_assign = inf
     for d in drivers:
-      d1_km = haversine_km(d.pos, a.pickup)
-      d2_km = haversine_km(a.pickup, a.dropoff)
+      d1_km = dist_fn(d.pos, a.pickup)
+      d2_km = dist_fn(a.pickup, a.dropoff)
       dist_km = d1_km + d2_km
       eta_min = travel_eta_min(dist_km, avg_kmh)
       price_lb = price_lb_per_ask[i] if price_lb_per_ask is not None else 0.0
@@ -155,6 +159,9 @@ def solve_clearing_ida(
   # NEW: partial matching flags
   allow_partial: bool = True,
   unassigned_penalty: float = 0.0,
+  # Distance between two points in km. Default: straight line. The auction tick passes
+  # road distances from the routing service.
+  dist_fn: Optional[DistFn] = None,
 ) -> Tuple[Optional[List[Tuple[int, int]]], float, Dict]:
   """
   Returns:
@@ -166,6 +173,7 @@ def solve_clearing_ida(
     - Heuristic accounts for skip cost to remain admissible.
   """
   ALL = (1 << len(asks)) - 1
+  dist = dist_fn or haversine_km
   init_state = State(assigned_mask=0, drivers=tuple(initial_drivers))
   parent: Dict[State, Tuple[State, Tuple[int, int], float]] = {}
 
@@ -173,7 +181,8 @@ def solve_clearing_ida(
     return lower_bound_remaining(
       asks, s.drivers, s.assigned_mask, avg_kmh, weights,
       price_lb_per_ask=price_lb_per_ask, rating_max=rating_max,
-      allow_partial=allow_partial, unassigned_penalty=unassigned_penalty
+      allow_partial=allow_partial, unassigned_penalty=unassigned_penalty,
+      dist_fn=dist,
     )
 
   def is_goal(s: State) -> bool:
@@ -201,12 +210,12 @@ def solve_clearing_ida(
     )
     for dj in driver_indices:
       d = s.drivers[dj]
-      if not feasible(d, a, now_min=d.time_min, avg_kmh=avg_kmh):
+      if not feasible(d, a, now_min=d.time_min, avg_kmh=avg_kmh, dist_fn=dist):
         continue
 
       # Distance & ETA
-      d1_km = haversine_km(d.pos, a.pickup)
-      d2_km = haversine_km(a.pickup, a.dropoff)
+      d1_km = dist(d.pos, a.pickup)
+      d2_km = dist(a.pickup, a.dropoff)
       dist_km = d1_km + d2_km
       eta_min = travel_eta_min(dist_km, avg_kmh)
 

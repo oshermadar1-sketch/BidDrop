@@ -35,6 +35,8 @@ except Exception:
 from json.decoder import JSONDecodeError
 
 from .auction.ida_star_core import ida_star
+from .services import routing
+from .services.route_estimates import stamp_assignment_estimate
 
 router = APIRouter(prefix="/poba", tags=["poba"])
 log = logging.getLogger("poba")
@@ -504,6 +506,7 @@ def _apply_matches_to_db(matches: List[MatchItem], db: Session) -> dict:
         if arow:
             created += 1
             print("[ESCROW DEBUG] assignment created, id =", arow["id"])
+            stamp_assignment_estimate(db, request_id)
 
         # Update request status → 'assigned'
         db.execute(
@@ -998,6 +1001,29 @@ def build_proposal(body: BuildBody, request: Request) -> BuildResp:
         c = 2 * math.atan2(a**0.5, (1 - a)**0.5)
         return 6371.0 * c
 
+    # Road distances for all request/offer endpoints in one routing request. Any pair
+    # the routing server cannot answer falls back to the straight line.
+    _pts: List[Tuple[float, float]] = []
+    _seen = set()
+    for _x in list(R) + list(O):
+        for _la, _lo in ((getattr(_x, "from_lat", None), getattr(_x, "from_lon", None)),
+                         (getattr(_x, "to_lat", None), getattr(_x, "to_lon", None))):
+            if _la is None or _lo is None:
+                continue
+            _k = (round(_la / 1_000_000.0, 5), round(_lo / 1_000_000.0, 5))
+            if _k not in _seen:
+                _seen.add(_k)
+                _pts.append(_k)
+    _road = routing.matrix(_pts)
+    _road_km = {(_pts[i], _pts[j]): _road[i][j].distance_km
+                for i in range(len(_pts)) for j in range(len(_pts))}
+
+    def road_km(lat1_e6: int, lon1_e6: int, lat2_e6: int, lon2_e6: int) -> float:
+        key = ((round(lat1_e6 / 1_000_000.0, 5), round(lon1_e6 / 1_000_000.0, 5)),
+               (round(lat2_e6 / 1_000_000.0, 5), round(lon2_e6 / 1_000_000.0, 5)))
+        v = _road_km.get(key)
+        return v if v is not None else haversine_km(lat1_e6, lon1_e6, lat2_e6, lon2_e6)
+
     for i, r in enumerate(R):
         for j, o in enumerate(O):
             debug_counts["total_pairs"] += 1
@@ -1064,8 +1090,8 @@ def build_proposal(body: BuildBody, request: Request) -> BuildResp:
                 d_start = 0.0
                 d_end = 0.0
             else:
-                d_start = haversine_km(r_fl, r_fn, o_fl, o_fn)
-                d_end = haversine_km(r_tl, r_tn, o_tl, o_tn)
+                d_start = road_km(r_fl, r_fn, o_fl, o_fn)
+                d_end = road_km(r_tl, r_tn, o_tl, o_tn)
 
             d_total = d_start + d_end
 

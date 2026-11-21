@@ -435,6 +435,20 @@ export default function AssignmentDetails() {
       ? `כ-${Math.round(assignment.predicted_minutes)} דקות`
       : "—";
 
+  // Route-based estimate (road distance / driving time from the routing service)
+  const arrivalLabel = assignment.estimated_arrival_at
+    ? new Date(assignment.estimated_arrival_at).toLocaleTimeString([], {
+        hour: "2-digit",
+        minute: "2-digit",
+      })
+    : "—";
+  const routeLabel =
+    typeof assignment.route_distance_km === "number"
+      ? `${assignment.route_distance_km.toFixed(1)} ק"מ · כ-${Math.round(
+          assignment.route_duration_min ?? 0
+        )} דקות נסיעה`
+      : "—";
+
   // Lower hero image more for the car
   const heroOffset = isRide ? 56 : 16;
 
@@ -517,6 +531,11 @@ export default function AssignmentDetails() {
 
         <View style={S.infoRow}>
           <InfoItem label="זמן משלוח משוער (חיזוי)" value={etaLabel} />
+          <InfoItem label="הגעה משוערת (לפי מסלול)" value={arrivalLabel} />
+        </View>
+
+        <View style={S.infoRow}>
+          <InfoItem label="מרחק בכביש" value={routeLabel} />
         </View>
 
         {isPayerRole && assignment.driver_rating_score != null && (

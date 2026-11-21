@@ -25,9 +25,13 @@ except Exception:
 
 # IDA* clearing engine
 try:
-    from .auction.clearing_engine import Ask, DriverState, Point, Weights, solve_clearing_ida
+    from .auction.clearing_engine import Ask, DriverState, Point, Weights, solve_clearing_ida, haversine_km
 except Exception:
-    from app.auction.clearing_engine import Ask, DriverState, Point, Weights, solve_clearing_ida  # type: ignore
+    from app.auction.clearing_engine import Ask, DriverState, Point, Weights, solve_clearing_ida, haversine_km  # type: ignore
+
+# Road distances (OpenStreetMap routing) with air-distance fallback
+from .services import routing
+from .services.route_estimates import stamp_assignment_estimate
 
 # Push service
 try:
@@ -346,6 +350,24 @@ def run_clearing_tick(
         w_rating_penalty=w_rating_penalty,
     )
 
+    # Road distances for every point the search can visit (driver anchors, pickups,
+    # drop-offs), fetched in one routing request; pairs the server cannot route fall
+    # back to the straight line inside routing.matrix.
+    points: List[Tuple[float, float]] = []
+    seen = set()
+    for p in [d.pos for d in drivers] + [a.pickup for a in asks_pruned] + [a.dropoff for a in asks_pruned]:
+        key = (round(p.lat, 5), round(p.lon, 5))
+        if key not in seen:
+            seen.add(key)
+            points.append(key)
+    road = routing.matrix(points)
+    road_km = {(points[i], points[j]): road[i][j].distance_km
+               for i in range(len(points)) for j in range(len(points))}
+
+    def dist_fn(a: Point, b: Point) -> float:
+        v = road_km.get(((round(a.lat, 5), round(a.lon, 5)), (round(b.lat, 5), round(b.lon, 5))))
+        return v if v is not None else haversine_km(a, b)
+
     plan, total_penalty, dbg = solve_clearing_ida(
         asks=asks_pruned,
         initial_drivers=drivers,
@@ -357,6 +379,7 @@ def run_clearing_tick(
         price_lb_per_ask=price_lb_pruned,
         allow_partial=True,
         unassigned_penalty=UNASSIGNED_PENALTY,
+        dist_fn=dist_fn,
     )
     if not plan:
         return {"cleared": False, "reason": "no optimal plan found", "debug": dbg, "debug_counts": dbg_counts}
@@ -399,7 +422,10 @@ def run_clearing_tick(
             claim_sql,
             {"rid": rid, "uid": uid, "ts": assigned_ts, "st": "created", "price_cents": price_cents},
         ).mappings().first()
-        return bool(row and row.get("request_id"))
+        claimed = bool(row and row.get("request_id"))
+        if claimed:
+            stamp_assignment_estimate(db, rid)
+        return claimed
 
     for (new_i, drv_j) in plan:
         rid = str(pruned_to_row[new_i].id)
