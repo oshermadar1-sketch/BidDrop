@@ -25,6 +25,27 @@ def haversine(lat1, lon1, lat2, lon2):
 df['Distance_km'] = haversine(df['Restaurant_latitude'], df['Restaurant_longitude'], 
                               df['Delivery_location_latitude'], df['Delivery_location_longitude'])
 
+# 3b. Road distance of the same route, from OpenStreetMap routing (scripts/road_distances.py).
+# Kept next to the straight-line distance so the model can be trained on either one.
+_road = pd.read_csv('Zomato_Road_Distances.csv')
+_key = ['Restaurant_latitude', 'Restaurant_longitude',
+        'Delivery_location_latitude', 'Delivery_location_longitude']
+_join = df[_key].astype(float).abs().round(5)
+_join.columns = ['_rlat', '_rlon', '_dlat', '_dlon']
+_road.columns = ['_rlat', '_rlon', '_dlat', '_dlon', 'Road_Distance_km', 'Road_Duration_min', 'Road_Source']
+df = (pd.concat([df, _join], axis=1)
+        .merge(_road, on=['_rlat', '_rlon', '_dlat', '_dlon'], how='left')
+        .drop(columns=['_rlat', '_rlon', '_dlat', '_dlon']))
+# Routes the server could not answer (or rows with missing coordinates): scale the
+# straight line by the typical road/air ratio of the routes it did answer.
+_ratio = (df.loc[df['Road_Source'] == 'osrm', 'Road_Distance_km']
+          / df.loc[df['Road_Source'] == 'osrm', 'Distance_km']).median()
+_missing = df['Road_Distance_km'].isna()
+df.loc[_missing, 'Road_Distance_km'] = (df.loc[_missing, 'Distance_km'] * _ratio).round(3)
+df.loc[_missing, 'Road_Duration_min'] = (60 * df.loc[_missing, 'Road_Distance_km'] / 30.0).round(1)
+df.loc[_missing, 'Road_Source'] = 'air'
+print(f"Road distances: ratio road/air = {_ratio:.2f}, {int((~_missing).sum())} routed, {int(_missing.sum())} scaled from air")
+
 # 4. Process Time Features
 # Drop rows missing crucial order or pickup times
 df = df.dropna(subset=['Time_Orderd', 'Time_Order_picked']).copy()

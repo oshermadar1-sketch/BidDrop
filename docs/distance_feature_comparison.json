@@ -1,0 +1,144 @@
+{
+  "rows": 33527,
+  "road_source_counts": {
+    "osrm": 30869,
+    "air": 2658
+  },
+  "road_over_air_median_ratio": 1.41,
+  "variants": {
+    "air distance (current)": {
+      "features": [
+        "Delivery_person_Age",
+        "Delivery_person_Ratings",
+        "Weather_conditions",
+        "Road_traffic_density",
+        "Vehicle_condition",
+        "Type_of_order",
+        "Type_of_vehicle",
+        "multiple_deliveries",
+        "Festival",
+        "City",
+        "Order_DayOfWeek",
+        "Distance_km"
+      ],
+      "test_all_features": {
+        "MAE_min": 4.39,
+        "RMSE_min": 5.38,
+        "R2": 0.6795
+      },
+      "test_app_with_profile": {
+        "MAE_min": 4.49,
+        "RMSE_min": 5.51,
+        "R2": 0.6637
+      },
+      "test_app_without_profile": {
+        "MAE_min": 5.53,
+        "RMSE_min": 6.91,
+        "R2": 0.4699
+      },
+      "cv5_MAE_min": 4.41,
+      "cv5_MAE_std": 0.02
+    },
+    "road distance": {
+      "features": [
+        "Delivery_person_Age",
+        "Delivery_person_Ratings",
+        "Weather_conditions",
+        "Road_traffic_density",
+        "Vehicle_condition",
+        "Type_of_order",
+        "Type_of_vehicle",
+        "multiple_deliveries",
+        "Festival",
+        "City",
+        "Order_DayOfWeek",
+        "Road_Distance_km"
+      ],
+      "test_all_features": {
+        "MAE_min": 4.52,
+        "RMSE_min": 5.59,
+        "R2": 0.6539
+      },
+      "test_app_with_profile": {
+        "MAE_min": 4.65,
+        "RMSE_min": 5.75,
+        "R2": 0.6328
+      },
+      "test_app_without_profile": {
+        "MAE_min": 5.67,
+        "RMSE_min": 7.11,
+        "R2": 0.4392
+      },
+      "cv5_MAE_min": 4.55,
+      "cv5_MAE_std": 0.02
+    },
+    "road distance + driving time": {
+      "features": [
+        "Delivery_person_Age",
+        "Delivery_person_Ratings",
+        "Weather_conditions",
+        "Road_traffic_density",
+        "Vehicle_condition",
+        "Type_of_order",
+        "Type_of_vehicle",
+        "multiple_deliveries",
+        "Festival",
+        "City",
+        "Order_DayOfWeek",
+        "Road_Distance_km",
+        "Road_Duration_min"
+      ],
+      "test_all_features": {
+        "MAE_min": 4.53,
+        "RMSE_min": 5.59,
+        "R2": 0.6529
+      },
+      "test_app_with_profile": {
+        "MAE_min": 4.66,
+        "RMSE_min": 5.76,
+        "R2": 0.632
+      },
+      "test_app_without_profile": {
+        "MAE_min": 5.68,
+        "RMSE_min": 7.11,
+        "R2": 0.4388
+      },
+      "cv5_MAE_min": 4.55,
+      "cv5_MAE_std": 0.02
+    },
+    "air + road distance": {
+      "features": [
+        "Delivery_person_Age",
+        "Delivery_person_Ratings",
+        "Weather_conditions",
+        "Road_traffic_density",
+        "Vehicle_condition",
+        "Type_of_order",
+        "Type_of_vehicle",
+        "multiple_deliveries",
+        "Festival",
+        "City",
+        "Order_DayOfWeek",
+        "Distance_km",
+        "Road_Distance_km"
+      ],
+      "test_all_features": {
+        "MAE_min": 4.38,
+        "RMSE_min": 5.38,
+        "R2": 0.6792
+      },
+      "test_app_with_profile": {
+        "MAE_min": 4.49,
+        "RMSE_min": 5.51,
+        "R2": 0.6637
+      },
+      "test_app_without_profile": {
+        "MAE_min": 5.53,
+        "RMSE_min": 6.92,
+        "R2": 0.4683
+      },
+      "cv5_MAE_min": 4.42,
+      "cv5_MAE_std": 0.01
+    }
+  }
+}
