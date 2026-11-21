@@ -174,7 +174,6 @@ export async function getNonce(address: string): Promise<NonceResponse> {
   return jsonFetch(`${BASE_URL}/auth/nonce`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    timeoutMs: 12000,
     body: JSON.stringify({ wallet_address: address }),
   });
 }
@@ -187,7 +186,6 @@ export async function verifySignature(params: {
   const data = await jsonFetch(`${BASE_URL}/auth/verify`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    timeoutMs: 12000,
     body: JSON.stringify({
       wallet_address: params.address,
       signed_message: params.message,
@@ -210,7 +208,6 @@ export async function verifySignature(params: {
 export async function getMyProfile(token: string): Promise<UserRow> {
   return jsonFetch<UserRow>(`${BASE_URL}/users/me`, {
     headers: { ...authHeaders(token) },
-    timeoutMs: 10000,
   });
 }
 
@@ -228,7 +225,6 @@ export async function upsertProfile(
       "Content-Type": "application/json",
       ...authHeaders(token),
     },
-    timeoutMs: 12000,
     body: JSON.stringify(payload),
   });
 }
@@ -250,7 +246,6 @@ export async function updateUserRole(
       "Content-Type": "application/json",
       ...authHeaders(token),
     },
-    timeoutMs: 10000,
     body: JSON.stringify({ role }),
   });
 }
@@ -424,7 +419,6 @@ export async function createCourierOffer(
         Authorization: `Bearer ${token}`,
       },
       body: JSON.stringify(body),
-      timeoutMs: 12000,
     }
   );
 }
@@ -457,7 +451,6 @@ export async function listMyCourierOffers(
   });
   return jsonFetch<CourierOfferRow[]>(`${BASE_URL}/offers?${q.toString()}`, {
     headers: { ...authHeaders(token) },
-    timeoutMs: 12000,
   });
 }
 
@@ -534,7 +527,6 @@ export async function createRiderRequest(
     method: "POST",
     headers: { "Content-Type": "application/json", ...authHeaders(token) },
     body: JSON.stringify(body),
-    timeoutMs: 12000,
   });
 }
 
@@ -580,7 +572,6 @@ export async function createSenderRequest(
       "Content-Type": "application/json",
       ...authHeaders(token),
     },
-    timeoutMs: 12000,
     body: JSON.stringify(body),
   });
 }
@@ -603,7 +594,6 @@ export async function clearAuctions(
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(payload),
-    timeoutMs: 12000,
   });
 }
 
@@ -617,7 +607,6 @@ export async function closeAuctionOnchain(payload: {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload),
-      timeoutMs: 12000,
     }
   );
 }
@@ -720,7 +709,6 @@ export type CourierProfile = {
 export async function getCourierProfile(token: string): Promise<CourierProfile> {
   return jsonFetch<CourierProfile>(`${BASE_URL}/users/me/courier-profile`, {
     headers: { ...authHeaders(token) },
-    timeoutMs: 12000,
   });
 }
 
@@ -731,7 +719,6 @@ export async function saveCourierProfile(
   return jsonFetch<CourierProfile>(`${BASE_URL}/users/me/courier-profile`, {
     method: "PUT",
     headers: { "Content-Type": "application/json", ...authHeaders(token) },
-    timeoutMs: 12000,
     body: JSON.stringify(body),
   });
 }
@@ -825,7 +812,7 @@ export async function getAssignmentByRequest(
   const url =
     `${BASE_URL}/assignments/by-request/${encodeURIComponent(requestId)}` +
     (offerId ? `?offer_id=${encodeURIComponent(offerId)}` : "");
-  return jsonFetch<AssignmentDetailOut>(url, { timeoutMs: 12000 });
+  return jsonFetch<AssignmentDetailOut>(url);
 }
 
 /** Get assignment by its ID (preferred when we know the assignment_id). */
@@ -833,8 +820,7 @@ export async function getAssignmentById(
   assignmentId: string
 ): Promise<AssignmentDetailOut> {
   return jsonFetch<AssignmentDetailOut>(
-    `${BASE_URL}/assignments/${encodeURIComponent(assignmentId)}`,
-    { timeoutMs: 12000 }
+    `${BASE_URL}/assignments/${encodeURIComponent(assignmentId)}`
   );
 }
 
@@ -848,7 +834,6 @@ export async function rateDriver(
     {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      timeoutMs: 12000,
       body: JSON.stringify({ score }),
     }
   );
@@ -871,7 +856,6 @@ export async function updateAssignmentStatus(
         "Content-Type": "application/json",
         ...authHeaders(token),
       },
-      timeoutMs: 12000,
       body: JSON.stringify({ status }),
     }
   );
@@ -895,7 +879,6 @@ export async function confirmAssignmentDelivered(
         "Content-Type": "application/json",
         ...authHeaders(token),
       },
-      timeoutMs: 12000,
     }
   );
 }
@@ -980,7 +963,6 @@ export async function initiateEscrow(
       "Content-Type": "application/json",
       ...authHeaders(token),
     },
-    timeoutMs: 12000,
     body: JSON.stringify({ assignment_id: assignmentId }),
   });
 }
@@ -999,7 +981,6 @@ export async function confirmEscrowDelivered(
       "Content-Type": "application/json",
       ...authHeaders(token),
     },
-    timeoutMs: 12000,
     body: JSON.stringify({ assignment_id: assignmentId }),
   });
 }

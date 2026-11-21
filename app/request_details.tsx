@@ -234,28 +234,14 @@ export default function RequestDetailsScreen() {
 
     try {
       setSavingStatus(true);
-      let updated;
-
-if (newStatus === "completed") {
-  const res = await fetch(
-    `http://127.0.0.1:8000/match/assignments/${aid}/complete`,
-    {
-      method: "POST",
-    }
-  );
-
-  if (!res.ok) {
-    throw new Error("Failed to complete assignment");
-  }
-
-  updated = await getAssignmentById(String(aid));
-} else {
-  updated = await updateAssignmentStatus(
-    String(token),
-    String(aid),
-    newStatus
-  );
-}
+      // Every transition, including 'completed', goes through the status
+      // endpoint of the configured API (the server sets completed_at and the
+      // escrow timer when the courier marks the delivery as completed).
+      const updated = await updateAssignmentStatus(
+        String(token),
+        String(aid),
+        newStatus
+      );
       setData(updated);
       setSheetVisible(false);
     } catch (e: any) {
