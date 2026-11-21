@@ -423,7 +423,7 @@ export default function AssignmentDetails() {
   const callEnabled = !!d.phone;
   const onCall = () => d.phone && Linking.openURL(`tel:${d.phone}`);
 
-  const assignedLocal = new Date(assignment.assigned_at).toLocaleString();
+  const assignedLocal = fmtDateTime(assignment.assigned_at);
   const trustScore =
     typeof d.trust_score === "number"
       ? d.trust_score
@@ -436,12 +436,15 @@ export default function AssignmentDetails() {
       : "—";
 
   // Route-based estimate (road distance / driving time from the routing service)
-  const arrivalLabel = assignment.estimated_arrival_at
-    ? new Date(assignment.estimated_arrival_at).toLocaleTimeString([], {
-        hour: "2-digit",
-        minute: "2-digit",
-      })
-    : "—";
+  const arrivalLabel = (() => {
+    if (!assignment.estimated_arrival_at) return "—";
+    const d = new Date(assignment.estimated_arrival_at);
+    const time = d.toLocaleTimeString("he-IL", { hour: "2-digit", minute: "2-digit" });
+    const today = d.toDateString() === new Date().toDateString();
+    return today
+      ? time
+      : `${d.toLocaleDateString("he-IL", { day: "2-digit", month: "2-digit" })} ${time}`;
+  })();
   const routeLabel =
     typeof assignment.route_distance_km === "number"
       ? `${assignment.route_distance_km.toFixed(1)} ק"מ · כ-${Math.round(
@@ -519,23 +522,14 @@ export default function AssignmentDetails() {
           </View>
         )}
 
-        <View style={S.infoRow}>
+        <View style={S.infoCard}>
           <InfoItem label="סטטוס" value={prettyStatus(assignment.status)} />
           <InfoItem label="שעת שיוך" value={assignedLocal} />
-        </View>
-
-        <View style={S.infoRow}>
           <InfoItem label="מחיר שסוכם" value={priceLabel} />
           <InfoItem label="סטטוס תשלום" value={paymentStatusLabel} />
-        </View>
-
-        <View style={S.infoRow}>
           <InfoItem label="זמן משלוח משוער (חיזוי)" value={etaLabel} />
           <InfoItem label="הגעה משוערת (לפי מסלול)" value={arrivalLabel} />
-        </View>
-
-        <View style={S.infoRow}>
-          <InfoItem label="מרחק בכביש" value={routeLabel} />
+          <InfoItem label="מרחק בכביש" value={routeLabel} last />
         </View>
 
         {isPayerRole && assignment.driver_rating_score != null && (
@@ -614,7 +608,32 @@ function getKindLabel(role: Role, isRide: boolean): string {
 }
 
 function prettyStatus(s: string) {
-  return s.replaceAll("_", " ");
+  switch (s) {
+    case "created":
+      return "שובץ";
+    case "picked_up":
+      return "נאסף";
+    case "in_transit":
+      return "בדרך";
+    case "completed":
+      return "הושלם";
+    case "cancelled":
+      return "בוטל";
+    case "failed":
+      return "נכשל";
+    default:
+      return s.replaceAll("_", " ");
+  }
+}
+
+function fmtDateTime(iso: string) {
+  return new Date(iso).toLocaleString("he-IL", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
 }
 
 function prettyPaymentStatus(s?: string | null) {
@@ -637,13 +656,19 @@ function prettyPaymentStatus(s?: string | null) {
   }
 }
 
-function InfoItem({ label, value }: { label: string; value: string }) {
+function InfoItem({
+  label,
+  value,
+  last,
+}: {
+  label: string;
+  value: string;
+  last?: boolean;
+}) {
   return (
-    <View style={{ flex: 1, gap: 4 }}>
+    <View style={[S.infoLine, last && { borderBottomWidth: 0 }]}>
       <Text style={S.infoLabel}>{label}</Text>
-      <Text style={S.infoValue} numberOfLines={1}>
-        {value}
-      </Text>
+      <Text style={S.infoValue}>{value}</Text>
     </View>
   );
 }
@@ -794,14 +819,38 @@ const S = StyleSheet.create({
   notesTitle: { fontWeight: "800", marginBottom: 6, color: TXT },
   notesBody: { color: "#374151", lineHeight: 20 },
 
-  infoRow: {
-    flexDirection: "row",
-    alignItems: "flex-start",
-    gap: 16,
-    marginTop: 2,
+  infoCard: {
+    marginTop: 12,
+    backgroundColor: "#fff",
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: "#e5e7eb",
+    paddingHorizontal: 12,
+    paddingVertical: 2,
   },
-  infoLabel: { color: "#6b7280", fontSize: 12 },
-  infoValue: { color: TXT, fontWeight: "600" },
+  infoLine: {
+    flexDirection: "row-reverse",
+    justifyContent: "space-between",
+    alignItems: "center",
+    gap: 12,
+    paddingVertical: 9,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: "#e5e7eb",
+  },
+  infoLabel: {
+    color: "#6b7280",
+    fontSize: 13,
+    writingDirection: "rtl",
+    textAlign: "right",
+  },
+  infoValue: {
+    color: TXT,
+    fontWeight: "700",
+    fontSize: 14,
+    flexShrink: 1,
+    writingDirection: "rtl",
+    textAlign: "left",
+  },
 
   btn: {
     paddingVertical: 12,

@@ -34,14 +34,15 @@ export function TrustStars({
 
   return (
     <View style={S.row}>
-      {/* Stars always fill left to right, also in RTL */}
-      <View style={[S.row, { direction: "ltr" }]}>
+      {/* Stars fill from the right, like the rest of the RTL screen */}
+      <View style={[S.row, { flexDirection: "row-reverse" }]}>
         {icons.map((name, i) => (
           <Ionicons
             key={i}
             name={name}
             size={size}
             color={name === "star-outline" ? EMPTY_COLOR : STAR_COLOR}
+            style={name === "star-half" ? { transform: [{ scaleX: -1 }] } : undefined}
           />
         ))}
       </View>
@@ -144,7 +145,7 @@ export function StarPicker({
   disabled?: boolean;
 }) {
   return (
-    <View style={[S.row, { direction: "ltr", gap: 8 }]}>
+    <View style={[S.row, { flexDirection: "row-reverse", gap: 8 }]}>
       {[1, 2, 3, 4, 5].map((v) => (
         <TouchableOpacity
           key={v}

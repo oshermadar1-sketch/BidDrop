@@ -98,7 +98,9 @@ async function fetchWithTimeout(
   input: string,
   init: RequestInit & { timeoutMs?: number } = {}
 ) {
-  const { timeoutMs = 12000, ...rest } = init;
+  // The free API instance sleeps when idle and can take up to ~1 minute to answer the
+  // first request, so the default must cover a cold start.
+  const { timeoutMs = 60000, ...rest } = init;
   const ctrl = new AbortController();
   const t = setTimeout(() => ctrl.abort(), timeoutMs);
 

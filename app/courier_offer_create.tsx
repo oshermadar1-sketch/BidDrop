@@ -139,6 +139,13 @@ export default function CourierOfferCreate() {
     selected: { backgroundColor: COLORS.primary, borderRadius: 8 },
     selected_label: { color: "#fff", fontWeight: "900" },
     today: { borderColor: COLORS.primary, borderWidth: 1, borderRadius: 8 },
+    // Day numbers and header text were drawn in a near-white gray by default
+    day_label: { color: "#111827", fontWeight: "600" },
+    weekday_label: { color: "#374151", fontWeight: "700" },
+    outside_label: { color: "#b0b5bd" },
+    month_selector_label: { color: "#111827", fontWeight: "800" },
+    year_selector_label: { color: "#111827", fontWeight: "800" },
+    time_selector_label: { color: "#111827", fontWeight: "800" },
   } as const;
 
   // צעדים
