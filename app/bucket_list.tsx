@@ -316,9 +316,11 @@ export default function BucketListScreen() {
       end={{ x: 0, y: 1 }}
       style={{ flex: 1 }}
     >
-      <BackButton />
       <SafeAreaView style={S.safe}>
-        <Text style={S.header}>{screenTitle}</Text>
+        <View style={S.topRow}>
+          <BackButton inline style={{ marginHorizontal: 0 }} />
+          <Text style={[S.header, { flex: 1 }]}>{screenTitle}</Text>
+        </View>
 
         {loading && items.length === 0 ? (
           <View style={S.loadingBox}>
@@ -607,6 +609,12 @@ function Line({
 const S = StyleSheet.create({
   safe: { flex: 1, paddingHorizontal: 16, paddingTop: 45 },
 
+  topRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+    paddingBottom: 8,
+  },
   header: {
     fontSize: 20,
     fontWeight: "900",
