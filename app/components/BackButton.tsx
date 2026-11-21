@@ -25,7 +25,7 @@ function homeFromParam(value?: string): Home {
 type Props = {
   /** Where to go when there is no history; derived from the role/mode params when omitted. */
   home?: Home;
-  /** Render in the flow (for a navigation header) instead of floating at the top corner. */
+  /** Render in the flow (for a header row) instead of floating at the top-right corner. */
   inline?: boolean;
   style?: ViewStyle;
 };
@@ -64,8 +64,8 @@ export default function BackButton({ home, inline, style }: Props) {
         style,
       ]}
     >
-      <Ionicons name="arrow-back" size={18} color="#2b2b2b" />
       <Text style={S.txt}>חזרה</Text>
+      <Ionicons name="arrow-forward" size={18} color="#2b2b2b" />
     </Pressable>
   );
 }
@@ -84,7 +84,7 @@ const S = StyleSheet.create({
   },
   floating: {
     position: "absolute",
-    left: 12,
+    right: 12,
     zIndex: 100,
     elevation: 6,
     ...Platform.select({

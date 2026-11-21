@@ -310,7 +310,7 @@ export default function RequestDetailsScreen() {
       <Stack.Screen
         options={{
           headerTitle: "פרטי בקשה",
-          headerLeft: () => <BackButton inline />,
+          headerRight: () => <BackButton inline />,
           headerTintColor: "#000",
           headerTitleAlign: "center",
         }}

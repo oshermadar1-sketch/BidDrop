@@ -318,8 +318,8 @@ export default function BucketListScreen() {
     >
       <SafeAreaView style={S.safe}>
         <View style={S.topRow}>
-          <BackButton inline style={{ marginHorizontal: 0 }} />
           <Text style={[S.header, { flex: 1 }]}>{screenTitle}</Text>
+          <BackButton inline style={{ marginHorizontal: 0 }} />
         </View>
 
         {loading && items.length === 0 ? (
