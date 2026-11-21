@@ -2,7 +2,7 @@
 # Matching logic with proper row-level locking and UTC timestamps.
 from __future__ import annotations
 
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from typing import Optional
 
 from sqlalchemy.exc import IntegrityError
@@ -17,6 +17,29 @@ except Exception:  # pragma: no cover
     from ..models import Offer as CourierOffer  # type: ignore
 
 from .courier_trust import get_courier_trust, match_score, predicted_minutes_for_offer
+from .route_estimates import leg_for_coords
+
+
+def _apply_route_estimate(asn: Assignment, req: Request) -> None:
+    """
+    Road distance, driving time and estimated arrival of the request's route, from the
+    routing service (see route_estimates.py). A routing problem never blocks a match.
+    """
+    try:
+        est = leg_for_coords(getattr(req, "from_lat", None), getattr(req, "from_lon", None),
+                             getattr(req, "to_lat", None), getattr(req, "to_lon", None))
+        if est is None:
+            return
+        now = datetime.now(timezone.utc)
+        start = getattr(req, "window_start", None)
+        if start is not None and start.tzinfo is None:
+            start = start.replace(tzinfo=timezone.utc)
+        start = max(now, start) if start else now
+        asn.route_distance_km = round(est.distance_km, 3)
+        asn.route_duration_min = round(est.duration_min, 1)
+        asn.estimated_arrival_at = start + timedelta(minutes=est.duration_min)
+    except Exception as e:
+        print("ROUTE ESTIMATE SKIPPED:", e)
 
 # ---- Status constants aligned with your enums ----
 REQ_OPEN = "open"
@@ -119,6 +142,7 @@ def match_for_offer(session: Session, *, offer_id: str) -> Optional[Assignment]:
             status=ASSN_CREATED,
             assigned_at=datetime.now(timezone.utc),
         )
+        _apply_route_estimate(asn, chosen)
         session.add(asn)
 
         chosen.status = REQ_ASSIGNED
@@ -194,6 +218,7 @@ def match_for_request(session: Session, *, request_id: str) -> Optional[Assignme
             status=ASSN_CREATED,
             assigned_at=datetime.now(timezone.utc),
         )
+        _apply_route_estimate(asn, req)
         session.add(asn)
 
         req.status = REQ_ASSIGNED
