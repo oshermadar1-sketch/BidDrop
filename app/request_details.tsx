@@ -14,6 +14,7 @@ import {
   ScrollView,
 } from "react-native";
 import { useLocalSearchParams, useRouter, Stack } from "expo-router";
+import BackButton from "./components/BackButton";
 import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
 import {
@@ -309,6 +310,7 @@ export default function RequestDetailsScreen() {
       <Stack.Screen
         options={{
           headerTitle: "פרטי בקשה",
+          headerLeft: () => <BackButton inline />,
           headerTintColor: "#000",
           headerTitleAlign: "center",
         }}

@@ -13,6 +13,7 @@ import {
   TouchableOpacity,
 } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
+import BackButton from "./components/BackButton";
 import { LinearGradient } from "expo-linear-gradient";
 import {
   listSenderRequests,
@@ -315,6 +316,7 @@ export default function BucketListScreen() {
       end={{ x: 0, y: 1 }}
       style={{ flex: 1 }}
     >
+      <BackButton />
       <SafeAreaView style={S.safe}>
         <Text style={S.header}>{screenTitle}</Text>
 

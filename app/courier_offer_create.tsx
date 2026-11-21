@@ -14,6 +14,7 @@ import {
   SafeAreaView,
 } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
+import BackButton from "./components/BackButton";
 import Modal from "react-native-modal";
 import UIDatePicker, { useDefaultStyles } from "react-native-ui-datepicker";
 import { LinearGradient } from "expo-linear-gradient";
@@ -160,6 +161,7 @@ export default function CourierOfferCreate() {
       end={{ x: 0, y: 1 }}
       style={{ flex: 1 }}
     >
+      <BackButton home="courier" />
       <SafeAreaView style={S.safe}>
         <Header
           title="הצעת שליח חדשה"

@@ -14,6 +14,7 @@ import {
   ScrollView,
 } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
+import BackButton from "./components/BackButton";
 import { useFocusEffect } from "@react-navigation/native";
 import * as Linking from "expo-linking";
 import Svg, { Path } from "react-native-svg";
@@ -486,6 +487,7 @@ export default function AssignmentDetails() {
 
   return (
     <View style={S.page}>
+      <BackButton />
       {/* fixed top layer */}
       <View style={S.header}>
         <GreenDiagonalWave />

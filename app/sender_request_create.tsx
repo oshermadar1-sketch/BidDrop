@@ -15,6 +15,7 @@ import {
   SafeAreaView,
 } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
+import BackButton from "./components/BackButton";
 import Modal from "react-native-modal";
 import UIDatePicker, { useDefaultStyles } from "react-native-ui-datepicker";
 import { LinearGradient } from "expo-linear-gradient";
@@ -187,6 +188,7 @@ if (!requestId) {
       end={{ x: 0, y: 1 }}
       style={{ flex: 1 }}
     >
+      <BackButton home="sender" />
       <SafeAreaView style={S.safe}>
         <Header
           title="בקשה חדשה"

@@ -14,6 +14,7 @@ import {
   Alert,
 } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
+import BackButton from "./components/BackButton";
 import AnimatedBgBlobs from "./components/AnimatedBgBlobs";
 import {
   getCourierProfile,
@@ -101,6 +102,7 @@ export default function CourierProfile() {
   return (
     <View style={{ flex: 1, backgroundColor: COLORS.bg }}>
       <AnimatedBgBlobs />
+      <BackButton home="role" />
       <ScrollView
         style={{ flex: 1 }}
         contentContainerStyle={[
