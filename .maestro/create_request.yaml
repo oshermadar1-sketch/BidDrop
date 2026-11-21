@@ -1,0 +1,33 @@
+# End-to-end: a signed-in sender publishes a request and gets a match.
+# Needs the demo couriers (python scripts/demo_data.py add) and a signed-in session
+# (run login.yaml first, or sign in by hand in the emulator).
+appId: com.biddrop.app
+---
+- launchApp
+- tapOn: "שולח/ת חבילה"
+- tapOn: "הוספת בקשה חדשה"
+- tapOn: "התחל/י להקליד, לדוגמה: בן גוריון 10, תל אביב"
+- inputText: "מנחם בגין 132"
+- extendedWaitUntil:
+    visible: "Boston Consulting Group.*"
+    timeout: 15000
+- tapOn: "Boston Consulting Group.*"
+- tapOn: "התחל/י להקליד, לדוגמה: הרצל 5, ראשון לציון"
+- inputText: "ז'בוטינסקי, רמת גן"
+- extendedWaitUntil:
+    visible: ".*אבא הלל.*"
+    timeout: 15000
+- tapOn: ".*אבא הלל.*"
+- hideKeyboard
+- tapOn: "התחלה *"
+- tapOn: "אישור"
+- tapOn: "סיום *"
+- tapOn: "אישור"
+- tapOn: "אני"
+- tapOn: "לדוגמה: 75"
+- inputText: "30"
+- hideKeyboard
+- tapOn: "פרסום בקשה"
+- extendedWaitUntil:
+    visible: "נמצאה התאמה!"
+    timeout: 60000

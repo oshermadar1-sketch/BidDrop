@@ -1,0 +1,18 @@
+# End-to-end: sign in with email and password and reach the role screen.
+# Run against the APK on the emulator:
+#   maestro test -e EMAIL=biddrop.sender.demo@example.com -e PASSWORD=<password> .maestro/login.yaml
+appId: com.biddrop.app
+---
+- launchApp:
+    clearState: true
+- tapOn: "נתחיל"
+- tapOn: "name@example.com"
+- inputText: ${EMAIL}
+- hideKeyboard
+- tapOn: "••••••••"
+- inputText: ${PASSWORD}
+- hideKeyboard
+- tapOn: "התחברות"
+- extendedWaitUntil:
+    visible: "בתור מי תרצו להתקדם מכאן?"
+    timeout: 60000
