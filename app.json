@@ -13,15 +13,13 @@
     },
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
-
     "extra": {
       "router": {},
+      "wcProjectId": "${EXPO_PUBLIC_WC_PROJECT_ID}",
       "eas": {
-        "projectId": "ba9c100f-a0df-467a-ab24-8ed14b5a8ae6"
-      },
-      "wcProjectId": "${EXPO_PUBLIC_WC_PROJECT_ID}"
+        "projectId": "00c4c987-ecc7-48e3-b685-b4d65f69c2a8"
+      }
     },
-
     "plugins": [
       "expo-router",
       "expo-splash-screen",
@@ -29,14 +27,13 @@
       "expo-web-browser",
       "expo-notifications"
     ],
-
-    "experiments": { "typedRoutes": true },
-
+    "experiments": {
+      "typedRoutes": true
+    },
     "ios": {
       "bundleIdentifier": "com.biddrop.app",
       "supportsTablet": true
     },
-
     "android": {
       "package": "com.biddrop.app",
       "adaptiveIcon": {
@@ -48,16 +45,23 @@
       "intentFilters": [
         {
           "action": "VIEW",
-          "category": ["BROWSABLE", "DEFAULT"],
-          "data": [{ "scheme": "biddrop" }]
+          "category": [
+            "BROWSABLE",
+            "DEFAULT"
+          ],
+          "data": [
+            {
+              "scheme": "biddrop"
+            }
+          ]
         }
       ]
     },
-
     "web": {
       "bundler": "metro",
       "output": "static",
       "favicon": "./assets/images/icon.png"
-    }
+    },
+    "owner": "varsul"
   }
 }

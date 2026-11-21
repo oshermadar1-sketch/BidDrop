@@ -121,10 +121,19 @@ def register(payload: dict, db: Session = Depends(get_db)):
     if existing:
         if existing["password_hash"]:
             raise HTTPException(status_code=409, detail="כתובת האימייל כבר רשומה. אפשר להתחבר או לאפס סיסמה.")
-        raise HTTPException(
-            status_code=409,
-            detail="כתובת האימייל שייכת לחשבון שנפתח עם ארנק. התחבר/י עם SubWallet.",
-        )
+        # The email belongs to an account that was opened with a wallet and has no password
+        # yet. Nobody can claim it by just typing the email: we send a set-password link to
+        # that address (the reset flow), and the wallet login itself offers "set a password".
+        raw = _issue_token(db, existing["id"], "reset", RESET_TTL)
+        db.commit()
+        sent = mailer.send_reset_email(email, raw)
+        return {
+            "existing_wallet_account": True,
+            "link_sent": sent,
+            "detail": "כתובת האימייל שייכת לחשבון שנפתח עם ארנק SubWallet. "
+                      + ("שלחנו לאימייל קישור לקביעת סיסמה." if sent else "")
+                      + " אפשר גם להתחבר עם SubWallet ולקבוע סיסמה מהמסך הראשי.",
+        }
 
     row = db.execute(
         text(f"""
@@ -223,6 +232,31 @@ def reset_password(payload: dict, db: Session = Depends(get_db)):
     )
     db.commit()
     return {"ok": True}
+
+
+# ---------------------------------- set password ----------------------------------
+
+@router.post("/set-password")
+def set_password(payload: dict, db: Session = Depends(get_db), me=Depends(get_current_user)):
+    """
+    Give the logged-in account a password, so it can also sign in with email + password.
+    Wallet accounts (no password yet) only need to be logged in; an account that already
+    has a password must send the current one as well.
+    """
+    password = check_password(payload.get("password"))
+    email = (me.get("email") or "").strip().lower()
+    if not email:
+        raise HTTPException(status_code=400, detail="קודם יש להוסיף כתובת אימייל לפרופיל")
+    row = db.execute(text("SELECT password_hash FROM users WHERE id = :uid"), {"uid": str(me["id"])}).mappings().first()
+    if row and row["password_hash"]:
+        if not verify_password(payload.get("current_password") or "", row["password_hash"]):
+            raise HTTPException(status_code=401, detail="הסיסמה הנוכחית שגויה")
+    db.execute(
+        text("UPDATE users SET password_hash = :ph, updated_at = NOW() WHERE id = :uid"),
+        {"ph": hash_password(password), "uid": str(me["id"])},
+    )
+    db.commit()
+    return {"ok": True, "email": email}
 
 
 # ---------------------------------- link wallet ----------------------------------

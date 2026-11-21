@@ -264,7 +264,9 @@ def create_user(first_name: str, last_name: str, db: Session = Depends(get_db)):
 
 
 @router.get("")
-def list_users(db: Session = Depends(get_db)):
+def list_users(db: Session = Depends(get_db), me = Depends(get_current_user)):
+    if me.get("role") != "admin":
+        raise HTTPException(status_code=403, detail="Admins only")
     """
     List users ordered by created_at (desc).
     Intended for admin/debug views; do not expose in production without auth/limits.

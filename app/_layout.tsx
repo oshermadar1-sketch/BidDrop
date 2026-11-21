@@ -21,6 +21,7 @@ export default function Layout() {
       <Stack.Screen name="forgot-password" options={{ headerShown: false }} />
       <Stack.Screen name="reset-password" options={{ headerShown: false }} />
       <Stack.Screen name="verify-email" options={{ headerShown: false }} />
+      <Stack.Screen name="set-password" options={{ headerShown: false }} />
       <Stack.Screen name="profile-setup" options={{ headerShown: false }} />
       <Stack.Screen name="role_select" options={{ headerShown: false }} />
       <Stack.Screen name="courier_profile" options={{ headerShown: false }} />

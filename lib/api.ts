@@ -110,6 +110,20 @@ function authHeaders(token?: string): HeadersInit {
   return token ? { Authorization: `Bearer ${token}` } : {};
 }
 
+const SECRET_FIELDS = ["password", "current_password", "signature", "token", "access_token"];
+
+/** JSON body with password-like fields replaced, for the console log. */
+function redactSecrets(body: string): string {
+  try {
+    const obj = JSON.parse(body);
+    if (obj && typeof obj === "object") {
+      for (const k of SECRET_FIELDS) if (k in obj) obj[k] = "***";
+      return JSON.stringify(obj);
+    }
+  } catch {}
+  return "(body hidden)";
+}
+
 async function fetchWithTimeout(
   input: string,
   init: RequestInit & { timeoutMs?: number } = {}
@@ -121,12 +135,10 @@ async function fetchWithTimeout(
   const t = setTimeout(() => ctrl.abort(), timeoutMs);
 
   console.log("[API] →", rest.method || "GET", input);
-  if (rest.body) {
+  // Request bodies are logged only in development, and never the secret fields
+  if (__DEV__ && rest.body && typeof rest.body === "string") {
     try {
-      console.log(
-        "[API]   body:",
-        typeof rest.body === "string" ? rest.body : "(non-string)"
-      );
+      console.log("[API]   body:", redactSecrets(rest.body));
     } catch {}
   }
 
@@ -209,10 +221,14 @@ export async function verifySignature(params: {
 // ---------------------------- Email accounts ------------------------------
 
 export interface EmailAuthResponse {
-  user: UserRow;
-  access_token: string;
-  token_type: string;
+  user?: UserRow;
+  access_token?: string;
+  token_type?: string;
   verification_sent?: boolean;
+  /** Sign-up with the email of a wallet account: no new account, a set-password link was sent instead. */
+  existing_wallet_account?: boolean;
+  link_sent?: boolean;
+  detail?: string;
 }
 
 export async function registerWithEmail(email: string, password: string): Promise<EmailAuthResponse> {
@@ -259,6 +275,19 @@ export async function resetPassword(token: string, password: string): Promise<{ 
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ token, password }),
+  });
+}
+
+/** Give the logged-in account a password (wallet accounts), or change it with the current one. */
+export async function setPassword(
+  token: string,
+  password: string,
+  currentPassword?: string
+): Promise<{ ok: boolean; email?: string }> {
+  return jsonFetch(`${BASE_URL}/auth/set-password`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...authHeaders(token) },
+    body: JSON.stringify({ password, current_password: currentPassword }),
   });
 }
 

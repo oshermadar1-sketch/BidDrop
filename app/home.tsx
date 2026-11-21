@@ -32,6 +32,16 @@ export default function HomeScreen() {
   const [password, setPassword] = useState("");
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
+  // The free server sleeps when idle; the first request can take up to a minute
+  const [slow, setSlow] = useState(false);
+  useEffect(() => {
+    if (!busy) {
+      setSlow(false);
+      return;
+    }
+    const t = setTimeout(() => setSlow(true), 4000);
+    return () => clearTimeout(t);
+  }, [busy]);
 
   // A remembered, still-valid login goes straight to the role screen.
   useEffect(() => {
@@ -109,6 +119,9 @@ export default function HomeScreen() {
               <Text style={S.btnPrimaryText}>{busy ? "מתחבר/ת…" : "התחברות"}</Text>
             </TouchableOpacity>
 
+            {busy && slow && (
+              <Text style={S.note}>השרת מתעורר, זה יכול לקחת עד דקה…</Text>
+            )}
             {!!err && (
               <View style={S.errBox}>
                 <Text style={S.errText}>{err}</Text>

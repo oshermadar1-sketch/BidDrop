@@ -45,6 +45,8 @@ export default function RoleSelectScreen() {
   const [name, setName] = useState<string>("");
   // Email accounts only: shown until the emailed link was opened
   const [needsVerify, setNeedsVerify] = useState(false);
+  // Wallet accounts with an email but no password yet: offer to set one
+  const [offerPassword, setOfferPassword] = useState<{ email: string } | null>(null);
   const [resent, setResent] = useState(false);
 
   // למנוע רישום כפול אם המסך נטען שוב
@@ -65,6 +67,7 @@ useEffect(() => {
 
       setName(displayName);
       setNeedsVerify(!!user.has_password && !!user.email && !user.email_verified_at);
+      setOfferPassword(!user.has_password && user.email ? { email: user.email } : null);
     } catch (e) {
       console.log("Failed loading user name", e);
     }
@@ -231,6 +234,23 @@ useEffect(() => {
           >
             <Text style={{ color: COLORS.text }}>בדיקת פוש (מציג דו״ח)</Text>
           </TouchableOpacity>
+
+          {offerPassword && (
+            <TouchableOpacity
+              onPress={() =>
+                router.push({
+                  pathname: "/set-password",
+                  params: { token: String(token), email: offerPassword.email },
+                })
+              }
+              style={{ marginTop: 10, alignSelf: "center", paddingVertical: 8 }}
+              accessibilityRole="button"
+            >
+              <Text style={{ color: COLORS.primaryDark, textDecorationLine: "underline" }}>
+                קביעת סיסמה לכניסה עם אימייל (בלי ארנק)
+              </Text>
+            </TouchableOpacity>
+          )}
 
           {/* Forget the remembered login and return to the wallet screen */}
           <TouchableOpacity
