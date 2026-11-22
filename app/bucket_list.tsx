@@ -14,6 +14,7 @@ import {
 } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import BackButton from "./components/BackButton";
+import { routeLine } from "../lib/route";
 import { LinearGradient } from "expo-linear-gradient";
 import {
   listSenderRequests,
@@ -44,11 +45,7 @@ type Params = {
 // Force LTR segments inside RTL (dates, times, arrows)
 const LRM = "\u200E";
 const ltr = (seg: string) => `${LRM}${seg}${LRM}`;
-const arrow = (from: string, to: string) => {
-  const fromSafe = from || "";
-  const toSafe = to || "";
-  return `${ltr(toSafe)} ${ltr("←")} ${ltr(fromSafe)}`;
-};
+const arrow = (from: string, to: string) => routeLine(from, to, { from: "", to: "" });
 
 const fmt2 = (n: number) => String(n).padStart(2, "0");
 function fmtDate(iso?: string | null) {

@@ -499,7 +499,7 @@ export default function AssignmentDetails() {
         <View style={S.details}>
         <Text style={S.kind}>{kind}</Text>
 
-        {/* Route pill – LTR: FROM (left) → arrow-forward → TO (right) */}
+        {/* Route pill: destination ← origin */}
         <RoutePillLTR from={req?.from_address} to={req?.to_address} />
 
         <View style={S.driverRow}>
@@ -695,7 +695,7 @@ function InfoItem({
   );
 }
 
-/* ---- Route pill (LTR): FROM left → arrow-forward → TO right; no dots ---- */
+/* ---- Route pill: TO left ← FROM right (see lib/route.ts); no dots ---- */
 function RoutePillLTR({
   from,
   to,
@@ -707,17 +707,14 @@ function RoutePillLTR({
   return (
     <View style={S.routePill}>
       <View style={[S.routeRow, { flexDirection: "row" }]}>
-        <Text style={[S.routeText, { textAlign: "right" }]} numberOfLines={1}>
-          {from || "—"}
-        </Text>
-        <Ionicons
-          name="arrow-forward"
-          size={18}
-          color="#6b7280"
-          style={{ marginHorizontal: 10, transform: [{ scaleX: -1 }] }}
-        />
+        {/* destination ← origin, the same order as every other route on the app:
+            read right to left from the origin, the arrow points at the destination */}
         <Text style={[S.routeText, { textAlign: "left" }]} numberOfLines={1}>
           {to || "—"}
+        </Text>
+        <Ionicons name="arrow-back" size={18} color="#6b7280" style={{ marginHorizontal: 10 }} />
+        <Text style={[S.routeText, { textAlign: "right" }]} numberOfLines={1}>
+          {from || "—"}
         </Text>
       </View>
     </View>
