@@ -8,11 +8,9 @@ appId: com.biddrop.app
 - tapOn: "נתחיל"
 - tapOn: "name@example.com"
 - inputText: ${EMAIL}
-- hideKeyboard
 - tapOn: "••••••••"
 - inputText: ${PASSWORD}
-- hideKeyboard
 - tapOn: "התחברות"
 - extendedWaitUntil:
-    visible: "בתור מי תרצו להתקדם מכאן?"
+    visible: ".*בתור מי תרצו להתקדם מכאן.*"
     timeout: 60000

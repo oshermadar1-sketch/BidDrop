@@ -11,3 +11,5 @@ These flows drive the real Android app on the emulator.
     maestro test .maestro/create_request.yaml
 
 `create_request.yaml` expects the demo couriers (`python scripts/demo_data.py add`) so a match is found.
+
+The flows do not use `hideKeyboard`: on an emulator with the hardware keyboard enabled there is no on-screen keyboard, and Maestro would press Back instead and leave the app.
