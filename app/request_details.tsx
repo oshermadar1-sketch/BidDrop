@@ -15,6 +15,7 @@ import {
 } from "react-native";
 import { useLocalSearchParams, useRouter, Stack } from "expo-router";
 import BackButton from "./components/BackButton";
+import { routeLine } from "../lib/route";
 import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
 import {
@@ -310,7 +311,6 @@ export default function RequestDetailsScreen() {
       <Stack.Screen
         options={{
           headerTitle: "פרטי בקשה",
-          headerRight: () => <BackButton inline />,
           headerTintColor: "#000",
           headerTitleAlign: "center",
         }}
@@ -339,6 +339,9 @@ export default function RequestDetailsScreen() {
           </View>
         ) : (
           <ScrollView contentContainerStyle={S.scrollContent}>
+            <View style={{ flexDirection: "row", justifyContent: "flex-end" }}>
+              <BackButton inline style={{ marginHorizontal: 0 }} />
+            </View>
             {/* Page title */}
             <Text style={S.pageTitle}>פרטי בקשה</Text>
 
@@ -358,8 +361,7 @@ export default function RequestDetailsScreen() {
                 </View>
                 <View style={{ flex: 1 }}>
                   <Text style={S.title}>
-                    {data.request.to_address || "יעד לא ידוע"} {ltr("←")}{" "}
-                    {data.request.from_address || "מוצא לא ידוע"}
+                    {routeLine(data.request.from_address, data.request.to_address)}
                   </Text>
                   <Text style={S.heroSub}>{winText}</Text>
                 </View>
