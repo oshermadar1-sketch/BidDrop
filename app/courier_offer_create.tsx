@@ -161,8 +161,11 @@ export default function CourierOfferCreate() {
       end={{ x: 0, y: 1 }}
       style={{ flex: 1 }}
     >
-      <BackButton home="courier" />
       <SafeAreaView style={S.safe}>
+        {/* own row, so it never covers the title or subtitle */}
+        <View style={{ flexDirection: "row", justifyContent: "flex-end" }}>
+          <BackButton inline home="courier" style={{ marginHorizontal: 0 }} />
+        </View>
         <Header
           title="הצעת שליח חדשה"
           subtitle="אזור וזמן • סוגי משימות • מחיר מינימלי"
@@ -193,7 +196,12 @@ export default function CourierOfferCreate() {
           ))}
         </View>
 
-        <ScrollView contentContainerStyle={{ paddingBottom: 160 }}>
+        {/* "handled": a tap on an address suggestion selects it even while the keyboard
+            is open (otherwise the first tap only closes the keyboard) */}
+        <ScrollView
+          contentContainerStyle={{ paddingBottom: 160 }}
+          keyboardShouldPersistTaps="handled"
+        >
           {/* כתובות */}
           <View style={S.card}>
             <Text style={S.cardTitle}>כתובות</Text>
