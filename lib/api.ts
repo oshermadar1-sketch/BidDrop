@@ -912,33 +912,37 @@ export type AssignmentStatus =
 /** Get assignment by request; backend will usually return only active one. */
 export async function getAssignmentByRequest(
   requestId: string,
-  offerId?: string
+  offerId?: string,
+  token?: string
 ): Promise<AssignmentDetailOut> {
   const url =
     `${BASE_URL}/assignments/by-request/${encodeURIComponent(requestId)}` +
     (offerId ? `?offer_id=${encodeURIComponent(offerId)}` : "");
-  return jsonFetch<AssignmentDetailOut>(url);
+  return jsonFetch<AssignmentDetailOut>(url, { headers: authHeaders(token) });
 }
 
 /** Get assignment by its ID (preferred when we know the assignment_id). */
 export async function getAssignmentById(
-  assignmentId: string
+  assignmentId: string,
+  token?: string
 ): Promise<AssignmentDetailOut> {
   return jsonFetch<AssignmentDetailOut>(
-    `${BASE_URL}/assignments/${encodeURIComponent(assignmentId)}`
+    `${BASE_URL}/assignments/${encodeURIComponent(assignmentId)}`,
+    { headers: authHeaders(token) }
   );
 }
 
 /** Customer rates the driver of a completed assignment (1..5). */
 export async function rateDriver(
   assignmentId: string,
-  score: number
+  score: number,
+  token?: string
 ): Promise<{ status: string; new_rating: number }> {
   return jsonFetch(
     `${BASE_URL}/assignments/${encodeURIComponent(assignmentId)}/rate-driver`,
     {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: { "Content-Type": "application/json", ...authHeaders(token) },
       body: JSON.stringify({ score }),
     }
   );

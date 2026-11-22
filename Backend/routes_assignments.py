@@ -7,11 +7,12 @@ import logging
 from datetime import datetime, timezone, timedelta
 from typing import Optional, List
 
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, Header, HTTPException, Query
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
 from .Database.db import get_db
+from .auth_dep import get_current_user
 from .models import Assignment, User, Request, Escrow, Rating, CourierOffer
 from .services.courier_trust import get_courier_trust, predicted_minutes_for_offer
 from .services.route_estimates import leg_for_coords
@@ -317,6 +318,43 @@ def _pack_assignment_detail(db: Session, assignment: Assignment) -> AssignmentDe
     )
 
 
+# ------------------------------ Access ------------------------------
+
+def _optional_user(
+    db: Session = Depends(get_db),
+    authorization: Optional[str] = Header(default=None),
+):
+    """The signed-in user when a token is sent, otherwise None.
+
+    APKs built before 23.11.2026 read assignment details and send ratings without
+    a token, so those calls still work without one. A token that is sent must be
+    valid and must belong to the sender or the courier of the assignment.
+    """
+    if not authorization:
+        return None
+    return get_current_user(db=db, authorization=authorization)
+
+
+def _customer_id(assignment: Assignment) -> Optional[str]:
+    req = getattr(assignment, "request", None)
+    owner = getattr(req, "owner_user_id", None) if req is not None else None
+    return str(owner) if owner is not None else None
+
+
+def _require_participant(assignment: Assignment, me, *, customer: bool = True, driver: bool = True) -> None:
+    """403 unless `me` is an allowed side of this assignment (None skips the check)."""
+    if me is None:
+        return
+    uid = str(me.get("id"))
+    allowed = set()
+    if customer and _customer_id(assignment):
+        allowed.add(_customer_id(assignment))
+    if driver and assignment.driver_user_id is not None:
+        allowed.add(str(assignment.driver_user_id))
+    if uid not in allowed:
+        raise HTTPException(status_code=403, detail="Not allowed for this assignment")
+
+
 # ----------------------------- Endpoints -----------------------------
 
 @router.get("/by-request/{request_id}", response_model=AssignmentDetailOut)
@@ -324,6 +362,7 @@ def get_assignment_by_request(
     request_id: str,
     db: Session = Depends(get_db),
     only_active: bool = Query(True, description="Return only non-cancelled/non-failed assignments"),
+    me=Depends(_optional_user),
 ):
     """
     Fetch the (most recent) assignment for a given request.
@@ -346,17 +385,23 @@ def get_assignment_by_request(
             status_code=404,
             detail="No assignment found for this request",
         )
+    _require_participant(assignment, me)
     return _pack_assignment_detail(db, assignment)
 
 
 @router.get("/{assignment_id}", response_model=AssignmentDetailOut)
-def get_assignment_by_id(assignment_id: str, db: Session = Depends(get_db)):
+def get_assignment_by_id(
+    assignment_id: str,
+    db: Session = Depends(get_db),
+    me=Depends(_optional_user),
+):
     """
     Fetch a single assignment by its ID.
     """
     assignment = db.query(Assignment).filter(Assignment.id == assignment_id).first()
     if not assignment:
         raise HTTPException(status_code=404, detail="Assignment not found")
+    _require_participant(assignment, me)
     return _pack_assignment_detail(db, assignment)
 
 
@@ -367,6 +412,7 @@ def update_assignment_status(
     assignment_id: str,
     payload: AssignmentStatusUpdateIn,
     db: Session = Depends(get_db),
+    me=Depends(get_current_user),
 ):
     """
     Update the logistics status of an assignment and stamp the relevant milestone timestamp.
@@ -391,6 +437,8 @@ def update_assignment_status(
     assignment = db.query(Assignment).filter(Assignment.id == assignment_id).first()
     if not assignment:
         raise HTTPException(status_code=404, detail="Assignment not found")
+    # Only the courier moves the delivery along.
+    _require_participant(assignment, me, customer=False)
 
     current_status = str(assignment.status)
     allowed = ALLOWED_STATUS_TRANSITIONS.get(current_status, set())
@@ -550,6 +598,7 @@ def list_recent_matches(limit: int = 50, db: Session = Depends(get_db)):
 def confirm_assignment_delivered(
     assignment_id: str,
     db: Session = Depends(get_db),
+    me=Depends(get_current_user),
 ):
     """
     Called by the sender / rider when הם מאשרים שהחבילה/הנסיעה הסתיימה בהצלחה.
@@ -565,6 +614,8 @@ def confirm_assignment_delivered(
     assignment = db.query(Assignment).filter(Assignment.id == assignment_id).first()
     if not assignment:
         raise HTTPException(status_code=404, detail="Assignment not found")
+    # Only the customer can confirm receipt (this also releases the escrow).
+    _require_participant(assignment, me, driver=False)
 
     # Try to get escrow via relationship
     esc = getattr(assignment, "escrow", None)
@@ -616,6 +667,7 @@ def rate_driver(
     assignment_id: str,
     payload: RatingIn,
     db: Session = Depends(get_db),
+    me=Depends(_optional_user),
 ):
     if payload.score < 1 or payload.score > 5:
         raise HTTPException(status_code=400, detail="Rating must be between 1 and 5")
@@ -623,6 +675,7 @@ def rate_driver(
     assignment = db.query(Assignment).filter(Assignment.id == assignment_id).first()
     if not assignment:
         raise HTTPException(status_code=404, detail="Assignment not found")
+    _require_participant(assignment, me, driver=False)
 
     if str(assignment.status) != "completed":
         raise HTTPException(status_code=400, detail="Assignment must be completed before rating")

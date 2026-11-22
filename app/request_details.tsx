@@ -167,7 +167,7 @@ export default function RequestDetailsScreen() {
       // 1) Try by assignment_id if we have it
       if (assignment_id) {
         try {
-          const res = await getAssignmentById(String(assignment_id));
+          const res = await getAssignmentById(String(assignment_id), token ? String(token) : undefined);
           setData(res);
           return;
         } catch (e: any) {
@@ -186,7 +186,7 @@ export default function RequestDetailsScreen() {
 
       // 2) Try by request_id
       if (request_id) {
-        const res = await getAssignmentByRequest(String(request_id));
+        const res = await getAssignmentByRequest(String(request_id), undefined, token ? String(token) : undefined);
         setData(res);
         return;
       }
@@ -283,7 +283,7 @@ export default function RequestDetailsScreen() {
         await confirmAssignmentDelivered(String(token), String(aid));
       }
 
-      const refreshed = await getAssignmentById(String(aid));
+      const refreshed = await getAssignmentById(String(aid), token ? String(token) : undefined);
       setData(refreshed);
 
       // Continue to the match screen, where the customer can rate the courier.

@@ -279,12 +279,58 @@ def test_completing_an_assignment_completes_the_request(Session):
                          status="created", assigned_at=NOW)
         db.add(asn)
         db.commit()
-        asn_id, req_id = str(asn.id), req.id
+        asn_id, req_id, courier = str(asn.id), req.id, {"id": d.id}
 
     expected = {"picked_up": "in_transit", "in_transit": "in_transit", "completed": "completed"}
     for step, req_status in expected.items():
         with Session() as db:
-            update_assignment_status(asn_id, AssignmentStatusUpdateIn(status=step), db)
+            update_assignment_status(asn_id, AssignmentStatusUpdateIn(status=step), db, me=courier)
         with Session() as db:
             assert str(db.query(Request).filter(Request.id == req_id).one().status) == req_status
 
+
+
+def test_only_the_parties_of_a_delivery_can_act_on_it(Session):
+    from fastapi import HTTPException
+    from Backend.routes_assignments import (
+        AssignmentStatusUpdateIn, RatingIn, confirm_assignment_delivered,
+        get_assignment_by_id, rate_driver, update_assignment_status,
+    )
+
+    with Session() as db:
+        sender, d, stranger = _user(db, "sender"), _user(db, "driver"), _user(db, "sender")
+        req = _request(db, sender, status="assigned")
+        asn = Assignment(request_id=req.id, driver_user_id=d.id, agreed_price_cents=1000,
+                         status="created", assigned_at=NOW)
+        db.add(asn)
+        db.commit()
+        asn_id = str(asn.id)
+        sender_me, courier_me, stranger_me = {"id": sender.id}, {"id": d.id}, {"id": stranger.id}
+
+    def refused(call):
+        with Session() as db:
+            with pytest.raises(HTTPException) as e:
+                call(db)
+        assert e.value.status_code == 403
+
+    # A stranger can't read it; both parties can, and so can an old app build without a token.
+    refused(lambda db: get_assignment_by_id(asn_id, db, me=stranger_me))
+    for me in (sender_me, courier_me, None):
+        with Session() as db:
+            assert get_assignment_by_id(asn_id, db, me=me).assignment_id == asn_id
+
+    # Only the courier moves the status.
+    picked = AssignmentStatusUpdateIn(status="picked_up")
+    refused(lambda db: update_assignment_status(asn_id, picked, db, me=sender_me))
+    refused(lambda db: update_assignment_status(asn_id, picked, db, me=stranger_me))
+    for step in ("picked_up", "in_transit", "completed"):
+        with Session() as db:
+            update_assignment_status(asn_id, AssignmentStatusUpdateIn(status=step), db, me=courier_me)
+
+    # Only the customer confirms receipt and rates.
+    refused(lambda db: confirm_assignment_delivered(asn_id, db, me=courier_me))
+    refused(lambda db: rate_driver(asn_id, RatingIn(score=5), db, me=stranger_me))
+    with Session() as db:
+        confirm_assignment_delivered(asn_id, db, me=sender_me)
+    with Session() as db:
+        assert rate_driver(asn_id, RatingIn(score=5), db, me=sender_me)["status"] == "rated"

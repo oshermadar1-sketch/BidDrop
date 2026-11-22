@@ -57,7 +57,7 @@ export default function PaymentDetails() {
         if (!assignmentId) {
           throw new Error("חסר מזהה שיוך (assignmentId)");
         }
-        const data = await getAssignmentById(String(assignmentId));
+        const data = await getAssignmentById(String(assignmentId), token ? String(token) : undefined);
         if (cancelled) return;
         setAssignment(data);
       } catch (e: any) {

@@ -233,10 +233,10 @@ export default function AssignmentDetails() {
         const asgId = (assignmentIdLocal || assignmentId) as string | undefined;
         if (asgId) {
           // ✅ Source of truth: fetch by assignment_id
-          data = await getAssignmentById(String(asgId));
+          data = await getAssignmentById(String(asgId), token ? String(token) : undefined);
         } else {
           // Fallback (sender/rider): fetch by request_id (only_active on server)
-          data = await getAssignmentByRequest(String(resolvedRequestId));
+          data = await getAssignmentByRequest(String(resolvedRequestId), undefined, token ? String(token) : undefined);
         }
 
         if (cancelled) return;
@@ -289,8 +289,8 @@ export default function AssignmentDetails() {
       if ((role as Role) === "driver" && !isDriverMatched) return;
 
       (hasAssignmentId
-        ? getAssignmentById(String(asgId))
-        : getAssignmentByRequest(String(resolvedRequestId))
+        ? getAssignmentById(String(asgId), token ? String(token) : undefined)
+        : getAssignmentByRequest(String(resolvedRequestId), undefined, token ? String(token) : undefined)
       )
         .then((data) => {
           if (!data) return;
@@ -397,9 +397,9 @@ export default function AssignmentDetails() {
     if (!assignment || ratingValue < 1 || ratingSending) return;
     try {
       setRatingSending(true);
-      await rateDriver(assignment.assignment_id, ratingValue);
+      await rateDriver(assignment.assignment_id, ratingValue, token ? String(token) : undefined);
       // Reload so the driver's trust score includes the new rating
-      const fresh = await getAssignmentById(assignment.assignment_id);
+      const fresh = await getAssignmentById(assignment.assignment_id, token ? String(token) : undefined);
       setAssignment(fresh);
     } catch (e: any) {
       Alert.alert("שגיאה", e?.message || "שליחת הדירוג נכשלה. נסה/י שוב.");
