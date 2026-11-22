@@ -2,7 +2,7 @@
 // Rider Home — gradient, two-line headline, RTL, mocha translucent cards.
 // Hides Expo Router header.
 
-import React, { useEffect, useState, useCallback } from "react";
+import React, { useState, useCallback } from "react";
 import {
   View,
   Text,
@@ -11,7 +11,7 @@ import {
   RefreshControl,
   TouchableOpacity,
 } from "react-native";
-import { useLocalSearchParams, useRouter, Stack } from "expo-router";
+import { useLocalSearchParams, useRouter, Stack, useFocusEffect } from "expo-router";
 import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
 import { getMyProfile, getRiderMetrics, type RiderMetrics } from "../lib/api";
@@ -42,9 +42,13 @@ export default function RiderHome() {
     setMetrics(m ?? null);
   }, [token]);
 
-  useEffect(() => {
-    load();
-  }, [load]);
+  // Reload whenever the screen comes back into view (e.g. after creating a request),
+  // not only on the first mount, so the counters are never stale.
+  useFocusEffect(
+    useCallback(() => {
+      load();
+    }, [load])
+  );
 
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
