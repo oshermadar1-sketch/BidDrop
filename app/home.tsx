@@ -104,10 +104,12 @@ export default function HomeScreen() {
                 placeholder="name@example.com"
                 placeholderTextColor={AUTH_COLORS.dim}
                 testID="login-email"
+                onSubmitEditing={handleLogin}
+                returnKeyType="go"
               />
             </View>
 
-            <PasswordField label="סיסמה" value={password} onChangeText={setPassword} />
+            <PasswordField label="סיסמה" value={password} onChangeText={setPassword} onSubmit={handleLogin} />
 
             <TouchableOpacity
               style={[S.btnPrimary, !canSubmit && S.disabled]}

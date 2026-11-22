@@ -94,7 +94,7 @@ export default function SignupScreen() {
             </View>
 
             <PasswordField label="סיסמה" value={password} onChangeText={setPassword} showRules />
-            <PasswordField label="אימות סיסמה" value={confirm} onChangeText={setConfirm} />
+            <PasswordField label="אימות סיסמה" value={confirm} onChangeText={setConfirm} onSubmit={handleSignup} />
             {!passwordsMatch && (
               <Text style={[S.errText, { marginTop: -6, marginBottom: 8 }]}>
                 הסיסמאות אינן זהות

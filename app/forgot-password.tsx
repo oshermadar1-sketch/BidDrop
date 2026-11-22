@@ -62,6 +62,8 @@ export default function ForgotPasswordScreen() {
                   autoCorrect={false}
                   placeholder="name@example.com"
                   placeholderTextColor={AUTH_COLORS.dim}
+                  onSubmitEditing={handleSend}
+                  returnKeyType="send"
                 />
               </View>
               <TouchableOpacity

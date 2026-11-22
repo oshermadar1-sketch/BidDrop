@@ -74,7 +74,7 @@ export default function SetPasswordScreen() {
                 <PasswordField label="סיסמה נוכחית" value={current} onChangeText={setCurrent} />
               )}
               <PasswordField label="סיסמה חדשה" value={password} onChangeText={setPassword} showRules />
-              <PasswordField label="אימות סיסמה" value={confirm} onChangeText={setConfirm} />
+              <PasswordField label="אימות סיסמה" value={confirm} onChangeText={setConfirm} onSubmit={handleSave} />
               {confirm.length > 0 && confirm !== password && (
                 <Text style={[S.errText, { marginTop: -6, marginBottom: 8 }]}>הסיסמאות אינן זהות</Text>
               )}

@@ -41,4 +41,13 @@ describe("PasswordField", () => {
     await fireEvent.changeText(getByPlaceholderText("••••••••"), "Abc12345");
     expect(colorOf(getByText("לפחות 8 תווים").props.style)).toBe(AUTH_COLORS.good);
   });
+
+  test("pressing Enter calls onSubmit", async () => {
+    const onSubmit = jest.fn();
+    await render(
+      <PasswordField label="סיסמה" value="Abc12345" onChangeText={() => {}} onSubmit={onSubmit} />
+    );
+    await fireEvent(screen.getByPlaceholderText("••••••••"), "submitEditing");
+    expect(onSubmit).toHaveBeenCalledTimes(1);
+  });
 });

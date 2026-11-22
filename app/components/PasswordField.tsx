@@ -13,12 +13,15 @@ export default function PasswordField({
   onChangeText,
   showRules,
   placeholder,
+  onSubmit,
 }: {
   label: string;
   value: string;
   onChangeText: (v: string) => void;
   showRules?: boolean;
   placeholder?: string;
+  /** Called when the user presses Enter (web) or the keyboard's go key (phone). */
+  onSubmit?: () => void;
 }) {
   const [visible, setVisible] = useState(false);
 
@@ -35,6 +38,8 @@ export default function PasswordField({
           autoCorrect={false}
           placeholder={placeholder ?? "••••••••"}
           placeholderTextColor={AUTH_COLORS.dim}
+          onSubmitEditing={onSubmit}
+          returnKeyType={onSubmit ? "go" : "default"}
         />
         <TouchableOpacity
           style={S.eyeBtn}
