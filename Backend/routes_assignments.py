@@ -110,6 +110,14 @@ class AssignmentStatusUpdateIn(BaseModel):
     status: str
 
 
+# Request status that follows each assignment status (requests have no picked_up value).
+REQUEST_STATUS_FOR_ASSIGNMENT = {
+    "picked_up": "in_transit",
+    "in_transit": "in_transit",
+    "completed": "completed",
+}
+
+
 # ------------------------------ Router ------------------------------
 
 router = APIRouter(prefix="/assignments", tags=["assignments"])
@@ -412,6 +420,15 @@ def update_assignment_status(
         assignment.cancelled_at = now
 
     assignment.status = new_status
+
+    # Keep the request in step with its assignment, so the sender's lists and counters
+    # (which read requests.status) move to "in transit" and "completed" as well.
+    req_status = REQUEST_STATUS_FOR_ASSIGNMENT.get(new_status)
+    if req_status:
+        req_for_status = db.query(Request).filter(Request.id == assignment.request_id).first()
+        if req_for_status is not None and str(req_for_status.status) != req_status:
+            req_for_status.status = req_status
+            db.add(req_for_status)
 
     # Recount the route-based arrival from the moment the courier departs.
     if new_status in ("picked_up", "in_transit"):

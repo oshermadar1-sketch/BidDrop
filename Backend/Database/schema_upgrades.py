@@ -1,6 +1,7 @@
 # Backend/Database/schema_upgrades.py
-# Small additive schema upgrades applied at server startup. Each statement only ADDS a
-# column if it is missing, so it is safe to run on every start and never touches data.
+# Small additive schema upgrades applied at server startup. Each UPGRADES statement only
+# ADDS a column if it is missing; DATA_REPAIRS only update rows that are out of step.
+# Both are safe to run on every start.
 import logging
 
 from sqlalchemy import text
@@ -37,8 +38,25 @@ UPGRADES = [
 ]
 
 
+# Data repairs: idempotent statements that fix rows written before a bug was fixed.
+DATA_REPAIRS = [
+    # Requests whose assignment moved on while the request stayed "assigned" (fixed in
+    # routes_assignments.update_assignment_status): bring them in line with the assignment.
+    """UPDATE requests r SET status = 'completed'
+       FROM assignments a
+       WHERE a.request_id = r.id AND a.status = 'completed'
+         AND r.status IN ('assigned', 'in_transit')""",
+    """UPDATE requests r SET status = 'in_transit'
+       FROM assignments a
+       WHERE a.request_id = r.id AND a.status IN ('picked_up', 'in_transit')
+         AND r.status = 'assigned'""",
+]
+
+
 def apply_schema_upgrades(engine) -> None:
     with engine.begin() as conn:
         for sql in UPGRADES:
             conn.execute(text(sql))
-    log.info("Schema upgrades checked (%d statements)", len(UPGRADES))
+        for sql in DATA_REPAIRS:
+            conn.execute(text(sql))
+    log.info("Schema upgrades checked (%d statements, %d data repairs)", len(UPGRADES), len(DATA_REPAIRS))

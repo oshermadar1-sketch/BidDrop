@@ -266,3 +266,25 @@ def test_auction_trust_outweighs_small_price_difference(Session):
         assert run_clearing_tick(db)["cleared"]
         asn = db.query(Assignment).filter(Assignment.request_id == req_id).one()
         assert asn.driver_user_id == good_id
+
+
+def test_completing_an_assignment_completes_the_request(Session):
+    from Backend.routes_assignments import AssignmentStatusUpdateIn, update_assignment_status
+
+    with Session() as db:
+        sender = _user(db, "sender")
+        d = _user(db, "driver")
+        req = _request(db, sender, status="assigned")
+        asn = Assignment(request_id=req.id, driver_user_id=d.id, agreed_price_cents=1000,
+                         status="created", assigned_at=NOW)
+        db.add(asn)
+        db.commit()
+        asn_id, req_id = str(asn.id), req.id
+
+    expected = {"picked_up": "in_transit", "in_transit": "in_transit", "completed": "completed"}
+    for step, req_status in expected.items():
+        with Session() as db:
+            update_assignment_status(asn_id, AssignmentStatusUpdateIn(status=step), db)
+        with Session() as db:
+            assert str(db.query(Request).filter(Request.id == req_id).one().status) == req_status
+
