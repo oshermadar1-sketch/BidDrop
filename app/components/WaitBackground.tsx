@@ -28,7 +28,9 @@ export default function WaitBackground({
         resizeMode="cover"
         blurRadius={blurRadius}
         style={S.bg}
-        imageStyle={{ opacity }}
+        // On the web the image otherwise keeps the photo's own size (550x745)
+        // and leaves the rest of a taller screen black.
+        imageStyle={{ opacity, width: "100%", height: "100%" }}
       >
         {/* שכבת הכהיה (שחור) */}
         {darken > 0 && (
