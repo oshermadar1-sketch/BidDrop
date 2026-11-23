@@ -23,7 +23,11 @@ import "dayjs/locale/he";
 
 import { Header } from "./components/Primitives";
 import { COLORS } from "./ui/theme";
-import { createRiderRequest, type CreateRiderPayload } from "../lib/api";
+import {
+  createRiderRequest,
+  runMatchingForRequest,
+  type CreateRiderPayload,
+} from "../lib/api";
 import {
   AddressAutocomplete,
   type PickedAddress,
@@ -119,6 +123,13 @@ export default function RiderRequestCreate() {
         Alert.alert("בקשה נשמרה", "לא קיבלנו מזהה בקשה. חוזרים לדף הבית.");
         router.replace({ pathname: "/rider_home_page", params: { token } });
         return;
+      }
+      // Look for a matching driver right away, as the sender form does. If none is
+      // found the waiting screen says so, and a later driver offer can still match.
+      try {
+        await runMatchingForRequest(String(token), requestId);
+      } catch (e) {
+        console.log("Immediate matching failed", e);
       }
       router.replace({
         pathname: "/matching-await",
