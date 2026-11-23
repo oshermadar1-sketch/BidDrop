@@ -525,6 +525,8 @@ def confirm_delivered(
             status_code=400,
             detail="Assignment must be completed before confirming delivery",
         )
+    if getattr(asg, "customer_confirmed_at", None) is None:
+        asg.customer_confirmed_at = datetime.now(timezone.utc)
 
     esc: Optional[Escrow] = asg.escrow
     if esc is None:

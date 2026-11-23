@@ -882,6 +882,7 @@ export type AssignmentDetailOut = {
   completed_at?: string | null;
   failed_at?: string | null;
   cancelled_at?: string | null;
+  customer_confirmed_at?: string | null;
   onchain_tx_hash?: string | null;
 
   driver: DriverBrief;

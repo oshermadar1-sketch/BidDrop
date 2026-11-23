@@ -262,6 +262,7 @@ export default function RequestDetailsScreen() {
     hasAnyId &&
     isCustomerView &&
     data?.status === "completed" &&
+    !data?.customer_confirmed_at &&
     (data?.payment_status === null ||
       data?.payment_status === undefined ||
       data?.payment_status === "pending_deposit" ||
@@ -498,6 +499,14 @@ export default function RequestDetailsScreen() {
                     : "—"
                 }
               />
+              {data.customer_confirmed_at ? (
+                <DetailLine
+                  label="אישור קבלה"
+                  value={`${fmtDate(data.customer_confirmed_at)} ${fmtTime(
+                    data.customer_confirmed_at
+                  )}`}
+                />
+              ) : null}
               <DetailLine
                 label="בוטל"
                 value={

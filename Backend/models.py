@@ -294,6 +294,8 @@ class Assignments(Base):
     completed_at   = Column(DateTime(timezone=True))
     failed_at      = Column(DateTime(timezone=True))
     cancelled_at   = Column(DateTime(timezone=True))
+    # Set when the sender / rider confirms receipt, with or without escrow
+    customer_confirmed_at = Column(DateTime(timezone=True))
 
     # Route-based estimate (road distance and driving time pickup -> drop-off, and the
     # arrival time derived from it). Filled by services/route_estimates.py.

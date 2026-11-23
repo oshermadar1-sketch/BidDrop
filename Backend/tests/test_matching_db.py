@@ -319,6 +319,12 @@ def test_only_the_parties_of_a_delivery_can_act_on_it(Session):
         with Session() as db:
             assert get_assignment_by_id(asn_id, db, me=me).assignment_id == asn_id
 
+    # Receipt can't be confirmed before the courier completes the delivery.
+    with Session() as db:
+        with pytest.raises(HTTPException) as early:
+            confirm_assignment_delivered(asn_id, db, me=sender_me)
+    assert early.value.status_code == 400
+
     # Only the courier moves the status.
     picked = AssignmentStatusUpdateIn(status="picked_up")
     refused(lambda db: update_assignment_status(asn_id, picked, db, me=sender_me))
@@ -331,6 +337,10 @@ def test_only_the_parties_of_a_delivery_can_act_on_it(Session):
     refused(lambda db: confirm_assignment_delivered(asn_id, db, me=courier_me))
     refused(lambda db: rate_driver(asn_id, RatingIn(score=5), db, me=stranger_me))
     with Session() as db:
+        assert get_assignment_by_id(asn_id, db, me=sender_me).customer_confirmed_at is None
         confirm_assignment_delivered(asn_id, db, me=sender_me)
+    with Session() as db:
+        # Stored without an escrow too, so the app stops offering the confirmation.
+        assert get_assignment_by_id(asn_id, db, me=sender_me).customer_confirmed_at is not None
     with Session() as db:
         assert rate_driver(asn_id, RatingIn(score=5), db, me=sender_me)["status"] == "rated"

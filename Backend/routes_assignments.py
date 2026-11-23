@@ -88,6 +88,7 @@ class AssignmentDetailOut(BaseModel):
     completed_at: Optional[datetime] = None
     failed_at: Optional[datetime] = None
     cancelled_at: Optional[datetime] = None
+    customer_confirmed_at: Optional[datetime] = None
     onchain_tx_hash: Optional[str] = None
 
     driver: DriverBrief
@@ -308,6 +309,7 @@ def _pack_assignment_detail(db: Session, assignment: Assignment) -> AssignmentDe
         completed_at=_ensure_tz(getattr(assignment, "completed_at", None)),
         failed_at=_ensure_tz(getattr(assignment, "failed_at", None)),
         cancelled_at=_ensure_tz(getattr(assignment, "cancelled_at", None)),
+        customer_confirmed_at=_ensure_tz(getattr(assignment, "customer_confirmed_at", None)),
         onchain_tx_hash=getattr(assignment, "onchain_tx_hash", None),
         driver=driver_out,
         requester=requester_out,
@@ -616,6 +618,13 @@ def confirm_assignment_delivered(
         raise HTTPException(status_code=404, detail="Assignment not found")
     # Only the customer can confirm receipt (this also releases the escrow).
     _require_participant(assignment, me, driver=False)
+    if str(assignment.status) != "completed":
+        raise HTTPException(status_code=400, detail="Assignment must be completed before confirming receipt")
+
+    now = datetime.now(timezone.utc)
+    # Record the confirmation even when there is no escrow, so the app stops offering it.
+    if getattr(assignment, "customer_confirmed_at", None) is None:
+        assignment.customer_confirmed_at = now
 
     # Try to get escrow via relationship
     esc = getattr(assignment, "escrow", None)
@@ -628,11 +637,12 @@ def confirm_assignment_delivered(
             .first()
         )
 
-    # If there is no escrow at all, nothing to release – just return details
+    # If there is no escrow at all, nothing to release
     if esc is None:
+        db.add(assignment)
+        db.commit()
+        db.refresh(assignment)
         return _pack_assignment_detail(db, assignment)
-
-    now = datetime.now(timezone.utc)
 
     # Mark that the customer confirmed delivery
     if getattr(esc, "sender_marked_received_at", None) is None:
