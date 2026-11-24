@@ -83,6 +83,9 @@ async function postRegisterPushToken(jwt: string, expoPushToken: string) {
 async function registerPushToken(jwt: string) {
   try {
     if (!Device.isDevice) return; // simulators often can't receive push
+    // The website gets no Expo push token, and asking for permission there waits
+    // for the browser's notification prompt, which held the login until answered.
+    if (Platform.OS === "web") return;
     const { status } = await Notifications.requestPermissionsAsync();
     if (status !== "granted") return;
 
