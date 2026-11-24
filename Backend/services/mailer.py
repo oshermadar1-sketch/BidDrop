@@ -30,6 +30,9 @@ def email_from() -> str:
 
 def send_email(to: str, subject: str, html: str, text: str) -> bool:
     """Send one email. Returns True when Resend accepted it; never raises."""
+    # Addresses saved from the profile form keep the user's capitals; Resend's test
+    # sender compares the address exactly and refused "Name@gmail.com".
+    to = (to or "").strip().lower()
     api_key = os.getenv("RESEND_API_KEY")
     if not api_key:
         log.warning("RESEND_API_KEY not set; email to %s not sent.\n%s", to, text)

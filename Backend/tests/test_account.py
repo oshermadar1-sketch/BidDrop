@@ -62,6 +62,23 @@ def test_links_use_the_web_app_address(monkeypatch):
     assert mailer.reset_link("xyz") == "https://biddrop-web.onrender.com/reset-password?token=xyz"
 
 
+def test_email_goes_to_the_lower_case_address(monkeypatch):
+    sent = {}
+
+    class Ok:
+        status_code = 200
+        text = ""
+
+    def fake_post(url, headers, json, timeout):
+        sent.update(json)
+        return Ok()
+
+    monkeypatch.setenv("RESEND_API_KEY", "test-key")
+    monkeypatch.setattr(mailer.httpx, "post", fake_post)
+    assert mailer.send_email(" Someone@Example.com ", "s", "<p>h</p>", "t") is True
+    assert sent["to"] == ["someone@example.com"]
+
+
 def test_without_api_key_nothing_is_sent(monkeypatch):
     monkeypatch.delenv("RESEND_API_KEY", raising=False)
     assert mailer.send_verification_email("someone@example.com", "abc") is False
